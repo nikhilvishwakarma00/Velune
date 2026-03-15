@@ -1,0 +1,15 @@
+git rm -r --cached app/build
+```
+
+**Step 2 — Update your `.gitignore`** — open it in Notepad and add these lines:
+```
+/app/build
+/lrclib/build
+/kizzy/build
+/kugou/build
+/lastfm/build
+/betterlyrics/build
+/canvas/build
+/simpmusic/build
+/innertube/build
+**/build/

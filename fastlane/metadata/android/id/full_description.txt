@@ -1,0 +1,24 @@
+Klien streaming musik yang ditingkatkan untuk Android dengan Material 3 Expressive
+
+Fitur:
+
+- Memutar lagu atau video apa pun dari YT Music
+- Pemutaran di latar belakang
+- Pilihan cepat yang dipersonalisasi
+- Manajemen pustaka
+- Mengunduh dan menyimpan lagu untuk pemutaran offline
+- Pencarian lagu, album, artis, video, dan daftar putar
+- Lirik langsung
+- Dukungan login dengan akun YouTube Music
+- Sinkronisasi lagu, artis, album, dan daftar putar dari dan ke akun Anda
+- Melewati keheningan
+- Impor daftar putar
+- Normalisasi audio
+- Menyesuaikan tempo/pitch
+- Manajemen daftar putar lokal
+- Mengatur ulang lagu di daftar putar atau antrean
+- Tema Terang – Gelap – Hitam – Dinamis
+- Timer tidur
+- Material 3
+- Status Discord yang dapat disesuaikan
+- dll.
