@@ -1237,7 +1237,10 @@ class MainActivity : ComponentActivity() {
                                                     }
                                                     IconButton(onClick = { showAccountDialog = true }) {
                                                         BadgedBox(badge = {
-                                                            if (latestVersionName != BuildConfig.VERSION_NAME) {
+                                                            if (latestVersionName
+                                                                .removePrefix("Velune ")
+                                                                .removePrefix("v")
+                                                                .trim() != BuildConfig.VERSION_NAME) {
                                                                 Badge()
                                                             }
                                                         }) {
