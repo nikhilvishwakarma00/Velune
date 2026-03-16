@@ -245,7 +245,7 @@ fun SettingsScreen(
     }
 
     val shouldShowPermissionHint = !isStorageGranted || !isNotificationGranted
-    val hasUpdate = latestVersionName != BuildConfig.VERSION_NAME
+    val hasUpdate = false // disabled for v1.0.0
 
     var heroVisible by remember { mutableStateOf(false) }
     var bannerVisible by remember { mutableStateOf(false) }
