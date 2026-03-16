@@ -1066,7 +1066,7 @@ fun QuickPicksListSection(
 }
 
 /**
- * Community playlists - horizontal swipable pages of 2x2 grids
+ * Community playlists - horizontal scroll, 2 items visible at a time
  */
 @Composable
 fun CommunityPlaylistsSection(
@@ -1080,10 +1080,6 @@ fun CommunityPlaylistsSection(
     scope: CoroutineScope,
     modifier: Modifier = Modifier
 ) {
-    // Group items into pages of 4 (2 rows x 2 cols per page)
-    val pages = remember(section.items) { section.items.chunked(4) }
-    val pagerState = androidx.compose.foundation.pager.rememberPagerState { pages.size }
-
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
@@ -1098,65 +1094,25 @@ fun CommunityPlaylistsSection(
             )
         }
 
-        androidx.compose.foundation.pager.HorizontalPager(
-            state = pagerState,
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 12.dp),
+            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxWidth()
-        ) { pageIndex ->
-            val pageItems = pages.getOrNull(pageIndex) ?: emptyList()
-            val pairs = pageItems.chunked(2)
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp)
-            ) {
-                pairs.forEach { pair ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
-                    ) {
-                        pair.forEach { item ->
-                            Box(modifier = Modifier.weight(1f)) {
-                                YouTubeGridItemWrapper(
-                                    item = item,
-                                    mediaMetadata = mediaMetadata,
-                                    isPlaying = isPlaying,
-                                    navController = navController,
-                                    playerConnection = playerConnection,
-                                    menuState = menuState,
-                                    haptic = haptic,
-                                    scope = scope
-                                )
-                            }
-                        }
-                        if (pair.size == 1) {
-                            Box(modifier = Modifier.weight(1f))
-                        }
-                    }
-                }
-            }
-        }
-
-        // Page indicator dots
-        if (pages.size > 1) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp, bottom = 4.dp),
-                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.Center
-            ) {
-                repeat(pages.size) { index ->
-                    val isSelected = pagerState.currentPage == index
-                    Box(
-                        modifier = Modifier
-                            .padding(horizontal = 3.dp)
-                            .size(if (isSelected) 8.dp else 5.dp)
-                            .clip(CircleShape)
-                            .background(
-                                if (isSelected) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
-                            )
+        ) {
+            items(
+                items = section.items,
+                key = { it.id }
+            ) { item ->
+                Box(modifier = Modifier.width(160.dp)) {
+                    YouTubeGridItemWrapper(
+                        item = item,
+                        mediaMetadata = mediaMetadata,
+                        isPlaying = isPlaying,
+                        navController = navController,
+                        playerConnection = playerConnection,
+                        menuState = menuState,
+                        haptic = haptic,
+                        scope = scope
                     )
                 }
             }
