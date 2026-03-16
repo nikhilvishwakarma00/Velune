@@ -99,6 +99,7 @@ fun HomeScreen(
     val keepListening by viewModel.keepListening.collectAsState()
     val homePage by viewModel.homePage.collectAsState()
     val explorePage by viewModel.explorePage.collectAsState()
+    val forYouSuggestions by viewModel.forYouSuggestions.collectAsState()
 
     val allLocalItems by viewModel.allLocalItems.collectAsState()
     val allYtItems by viewModel.allYtItems.collectAsState()
@@ -422,7 +423,9 @@ fun HomeScreen(
 
             homePage?.sections?.forEach { section ->
                 val isCommunity = section.title?.contains("community", ignoreCase = true) == true ||
-                    section.title?.contains("From the", ignoreCase = true) == true
+                    section.title?.contains("From the", ignoreCase = true) == true ||
+                    section.title?.contains("Trending", ignoreCase = true) == true &&
+                    section.items.all { it is com.nikhil.yt.innertube.models.PlaylistItem }
 
                 if (isCommunity) {
                     item {
@@ -465,6 +468,21 @@ fun HomeScreen(
             if (isLoading || homePage?.continuation != null && homePage?.sections?.isNotEmpty() == true) {
                 item {
                     HomeLoadingShimmer(modifier = Modifier.animateItem())
+                }
+            }
+
+            forYouSuggestions?.takeIf { it.isNotEmpty() }?.let { suggestions ->
+                item {
+                    ForYouSection(
+                        suggestions = suggestions,
+                        mediaMetadata = mediaMetadata,
+                        isPlaying = isPlaying,
+                        navController = navController,
+                        playerConnection = playerConnection,
+                        menuState = menuState,
+                        haptic = haptic,
+                        modifier = Modifier.animateItem()
+                    )
                 }
             }
 

@@ -58,7 +58,7 @@ import java.util.concurrent.Executor
 import kotlin.coroutines.resume
 
 private const val TAG = "MusicDatabase"
-private const val CURRENT_VERSION = 27
+private const val CURRENT_VERSION = 28
 
 class MusicDatabase(
     private val delegate: InternalDatabase,
@@ -123,7 +123,8 @@ class MusicDatabase(
         SetVideoIdEntity::class,
         PlayCountEntity::class,
         TagEntity::class,
-        PlaylistTagMap::class
+        PlaylistTagMap::class,
+        com.nikhil.yt.db.entities.SongSkipEntity::class
     ],
     views = [
         SortedSongArtistMap::class,

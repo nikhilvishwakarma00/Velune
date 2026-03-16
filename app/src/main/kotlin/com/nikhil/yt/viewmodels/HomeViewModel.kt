@@ -49,10 +49,12 @@ class HomeViewModel @Inject constructor(
     @ApplicationContext val context: Context,
     val database: MusicDatabase,
     val syncUtils: SyncUtils,
+    val forYouEngine: com.nikhil.yt.utils.ForYouSuggestionEngine,
 ) : ViewModel() {
     val isRefreshing = MutableStateFlow(false)
     val isLoading = MutableStateFlow(false)
     private val isInitialLoadComplete = MutableStateFlow(false)
+    val forYouSuggestions = MutableStateFlow<List<com.nikhil.yt.innertube.models.SongItem>?>(null)
 
     private val quickPicksEnum = context.dataStore.data.map {
         it[QuickPicksKey].toEnum(QuickPicks.QUICK_PICKS)
@@ -108,6 +110,13 @@ class HomeViewModel @Inject constructor(
 
                 launch { getQuickPicks() }
                 launch { forgottenFavorites.value = database.forgottenFavorites().first().shuffled().take(20) }
+                launch {
+                    try {
+                        val hideExplicit = context.dataStore.get(HideExplicitKey, false)
+                        val hideVideo = context.dataStore.get(HideVideoKey, false)
+                        forYouSuggestions.value = forYouEngine.getSuggestions(hideExplicit, hideVideo)
+                    } catch (_: Exception) {}
+                }
                 
                 launch {
                     val keepListeningSongs = database.mostPlayedSongs(fromTimeStamp, limit = 15, offset = 5)

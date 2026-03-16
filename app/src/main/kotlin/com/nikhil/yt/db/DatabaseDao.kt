@@ -1646,4 +1646,18 @@ interface DatabaseDao {
             addTagToPlaylist(playlistId, tagId)
         }
     }
+
+    // ─── For You Suggestion Engine ───────────────────────────────────────
+
+    @Query("SELECT * FROM song_skip")
+    fun getAllSkips(): Flow<List<com.nikhil.yt.db.entities.SongSkipEntity>>
+
+    @Query("SELECT * FROM song_skip WHERE songId = :songId LIMIT 1")
+    suspend fun getSkip(songId: String): com.nikhil.yt.db.entities.SongSkipEntity?
+
+    @Upsert
+    suspend fun upsertSkip(skip: com.nikhil.yt.db.entities.SongSkipEntity)
+
+    @Query("DELETE FROM song_skip WHERE songId = :songId")
+    suspend fun deleteSkip(songId: String)
 }

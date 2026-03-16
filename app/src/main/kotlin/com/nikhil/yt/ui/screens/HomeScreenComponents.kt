@@ -8,6 +8,7 @@
 
 package com.nikhil.yt.ui.screens
 
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -44,7 +45,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.carousel.HorizontalUncontainedCarousel
 import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -91,7 +91,6 @@ import com.nikhil.yt.playback.PlayerConnection
 import com.nikhil.yt.playback.queues.YouTubeQueue
 import com.nikhil.yt.ui.component.AlbumGridItem
 import com.nikhil.yt.ui.component.ArtistGridItem
-import com.nikhil.yt.ui.component.LocalMenuState
 import com.nikhil.yt.ui.component.MenuState
 import com.nikhil.yt.ui.component.NavigationTitle
 import com.nikhil.yt.ui.component.SongGridItem
@@ -116,7 +115,6 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.nikhil.yt.viewmodels.HomeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -1113,6 +1111,68 @@ fun CommunityPlaylistsSection(
                         menuState = menuState,
                         haptic = haptic,
                         scope = scope
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * For You suggestions section — 50 personalized songs
+ */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun ForYouSection(
+    suggestions: List<com.nikhil.yt.innertube.models.SongItem>,
+    mediaMetadata: MediaMetadata?,
+    isPlaying: Boolean,
+    navController: NavController,
+    playerConnection: PlayerConnection,
+    menuState: MenuState,
+    haptic: HapticFeedback,
+    modifier: Modifier = Modifier
+) {
+    if (suggestions.isEmpty()) return
+
+    Column(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "✨ For You",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.weight(1f)
+            )
+            Text(
+                text = "${suggestions.size} songs",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 12.dp),
+            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            items(
+                items = suggestions,
+                key = { it.id }
+            ) { song ->
+                Box(modifier = Modifier.width(160.dp)) {
+                    YouTubeGridItemWrapper(
+                        item = song,
+                        mediaMetadata = mediaMetadata,
+                        isPlaying = isPlaying,
+                        navController = navController,
+                        playerConnection = playerConnection,
+                        menuState = menuState,
+                        haptic = haptic,
+                        scope = rememberCoroutineScope()
                     )
                 }
             }
