@@ -24,9 +24,7 @@ import io.ktor.client.statement.bodyAsText
 import org.json.JSONObject
 import java.util.logging.Logger
 
-/**
- * Modified by Koiverse
- */
+
 open class KizzyRPC(private val token: String, private val injectedLogger: KizzyLogger? = null) {
     private val kizzyRepository = KizzyRepository()
     private val discordWebSocket = DiscordWebSocket(token)

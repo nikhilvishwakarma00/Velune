@@ -21,9 +21,7 @@ import io.ktor.client.request.url
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
-/**
- * Modified by Koiverse
- */
+
 class ApiService {
     private val client = HttpClient {
         install(ContentNegotiation) {
