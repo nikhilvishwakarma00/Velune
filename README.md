@@ -1,7 +1,7 @@
 <div align="center">
 
 <br/>
- 
+
 ```
  ██╗   ██╗███████╗██╗     ██╗   ██╗███╗   ██╗███████╗
  ██║   ██║██╔════╝██║     ██║   ██║████╗  ██║██╔════╝
@@ -10,29 +10,21 @@
   ╚████╔╝ ███████╗███████╗╚██████╔╝██║ ╚████║███████╗
    ╚═══╝  ╚══════╝╚══════╝ ╚═════╝ ╚═╝  ╚═══╝╚══════╝
 ```
- 
+
 **A premium YouTube Music client for Android.**  
 *Clean. Offline-capable. Built different.*
 
 <br/>
 
-<br/>
-
-!\[Android](https://img.shields.io/badge/Platform-Android-3DDC84?style=for-the-badge\&logo=android\&logoColor=white\&labelColor=0d0f0a)
-
-!\[Kotlin](https://img.shields.io/badge/Language-Kotlin-7F52FF?style=for-the-badge\&logo=kotlin\&logoColor=white\&labelColor=0d0f0a)
-
-!\[Jetpack Compose](https://img.shields.io/badge/UI-Jetpack\_Compose-4285F4?style=for-the-badge\&logo=jetpack-compose\&logoColor=white\&labelColor=0d0f0a)
-
-!\[License](https://img.shields.io/badge/License-GPL\_3.0-c8e63c?style=for-the-badge\&labelColor=0d0f0a)
-
-
+![Android](https://img.shields.io/badge/Platform-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white&labelColor=0d0f0a)
+![Kotlin](https://img.shields.io/badge/Language-Kotlin-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white&labelColor=0d0f0a)
+![Jetpack Compose](https://img.shields.io/badge/UI-Jetpack_Compose-4285F4?style=for-the-badge&logo=jetpack-compose&logoColor=white&labelColor=0d0f0a)
+![License](https://img.shields.io/badge/License-GPL_3.0-c8e63c?style=for-the-badge&labelColor=0d0f0a)
 
 <br/>
-
-
 
 </div>
+
 
 
 
