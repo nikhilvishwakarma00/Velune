@@ -1,6 +1,6 @@
 # 🛠️ Engineering & Build Guide
 
-This document defines the protocols for setting up the development environment, understanding the underlying technology stack, and compiling **ArchiveTune** from the source.
+This document defines the protocols for setting up the development environment, understanding the underlying technology stack, and compiling **Velune** from the source.
 
 ---
 
@@ -17,7 +17,7 @@ To ensure build stability and environment parity, the following hardware and sof
 
 ### **Technical DNA (Skill Requirements)**
 
-The ArchiveTune codebase is built on a modern, reactive architecture. Contributors are expected to have a high level of familiarity with:
+The Velune codebase is built on a modern, reactive architecture. Contributors are expected to have a high level of familiarity with:
 
 * **Kotlin (Advanced):** Proficiency in Coroutines, Flow API, and functional paradigms.
 * **Jetpack Compose:** Understanding of State Hoisting, Recomposition optimization, and Material 3 design systems.
@@ -28,7 +28,7 @@ The ArchiveTune codebase is built on a modern, reactive architecture. Contributo
 
 ## 📐 Architectural Manifesto
 
-ArchiveTune follows a strict **Clean Architecture** approach. This separation of concerns ensures that the audio engine remains independent of the UI layer.
+Velune follows a strict **Clean Architecture** approach. This separation of concerns ensures that the audio engine remains independent of the UI layer.
 
 1. **UI Layer (Compose):** Handles user interactions and renders state emitted by ViewModels.
 2. **Domain Layer:** Contains business logic, Use Cases, and high-level audio processing interfaces.
@@ -41,14 +41,14 @@ ArchiveTune follows a strict **Clean Architecture** approach. This separation of
 
 1. **Clone the Source:**
 ```bash
-git clone https://github.com/koiverse/ArchiveTune.git
-cd ArchiveTune
+git clone https://github.com/nikhilvishwakarma00/Velune.git
+cd Velune
 
 ```
 
 
 2. **Secret Management:**
-ArchiveTune uses a modular properties system. If your build requires specific API keys (e.g., Discord Client IDs), define them in your `local.properties`:
+Velune uses a modular properties system. If your build requires specific API keys (e.g., Discord Client IDs), define them in your `local.properties`:
 ```properties
 # Path to your Android SDK
 sdk.dir=/Users/yourname/Library/Android/sdk
@@ -96,5 +96,5 @@ Before initiating a Pull Request, every contributor must run the following quali
 ---
 
 <div align="center">
-<sub>ArchiveTune: Engineering audio freedom. Part of the <strong>Koiverse</strong> ecosystem.</sub>
+<sub>Velune: Engineering audio freedom.</sub>
 </div>

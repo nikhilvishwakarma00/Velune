@@ -483,12 +483,13 @@ class MainActivity : ComponentActivity() {
                     notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                 }
 
-                if (System.currentTimeMillis() - Updater.lastCheckTime > 1.days.inWholeMilliseconds) {
-                    Updater.getLatestVersionName().onSuccess {
-                        latestVersionName = it
-                    }
-                }
-                com.nikhil.yt.utils.UpdateNotificationManager.checkForUpdates(this@MainActivity)
+                // Update checker disabled - IzzyOnDroid handles updates
+                // if (System.currentTimeMillis() - Updater.lastCheckTime > 1.days.inWholeMilliseconds) {
+                //     Updater.getLatestVersionName().onSuccess {
+                //         latestVersionName = it
+                //     }
+                // }
+                // com.nikhil.yt.utils.UpdateNotificationManager.checkForUpdates(this@MainActivity)
             }
 
                     // Use remembered instances so the same state object is used everywhere
@@ -555,9 +556,13 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    // Update popup disabled for v1.0.0
+                    // Update popup disabled - IzzyOnDroid handles updates
                     // LaunchedEffect(latestVersionName) {
-                    //     if (latestVersionName != BuildConfig.VERSION_NAME) {
+                    //     val cleanLatest = latestVersionName
+                    //         .removePrefix("Velune ")
+                    //         .removePrefix("v")
+                    //         .trim()
+                    //     if (cleanLatest.isNotEmpty() && cleanLatest != BuildConfig.VERSION_NAME) {
                     //         Updater.getLatestReleaseNotes().onSuccess {
                     //             releaseNotesState.value = it
                     //         }.onFailure {
@@ -1531,7 +1536,7 @@ class MainActivity : ComponentActivity() {
                                             ) {
                                                 val barColor =
                                                     if (pureBlack) Color.Black
-                                                    else MaterialTheme.colorScheme.surfaceContainer
+                                                    else MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.85f)
 
                                                 Surface(
                                                     modifier =
