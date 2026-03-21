@@ -151,6 +151,12 @@ fun UpdateScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
+                        text = "⚠️ By using Velune's in-app updater, you are getting updates straight from the developer. These updates are not checked by whatever app store you might have installed Velune from.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+
+                    Text(
                         text = "Velune provides two download channels for builds:",
                         style = MaterialTheme.typography.bodyMedium
                     )
@@ -229,6 +235,12 @@ fun UpdateScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
+                    Text(
+                        text = "⚠️ By using Velune's in-app updater, you are getting updates straight from the developer. These updates are not checked by whatever app store you might have installed Velune from.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+
                     Text(
                         text = "Velune provides two download channels for builds:",
                         style = MaterialTheme.typography.bodyMedium
