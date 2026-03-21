@@ -105,7 +105,6 @@ import com.nikhil.yt.innertube.utils.completed
 import com.nikhil.yt.innertube.utils.parseCookieString
 import com.nikhil.yt.ui.component.InfoLabel
 import com.nikhil.yt.ui.component.TextFieldDialog
-import com.nikhil.yt.utils.Updater
 import com.nikhil.yt.utils.dataStore
 import com.nikhil.yt.utils.rememberPreference
 import com.nikhil.yt.viewmodels.HomeViewModel
@@ -114,7 +113,6 @@ import com.nikhil.yt.viewmodels.HomeViewModel
 fun AccountSettings(
     navController: NavController,
     onClose: () -> Unit,
-    latestVersionName: String
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
@@ -141,10 +139,7 @@ fun AccountSettings(
     var showTokenEditor by remember { mutableStateOf(false) }
     var showPlaylistDialog by remember { mutableStateOf(false) }
 
-    val hasUpdate = latestVersionName
-        .removePrefix("Velune ")
-        .removePrefix("v")
-        .trim() != BuildConfig.VERSION_NAME
+    val hasUpdate = false
 
     Column(
         modifier = Modifier
@@ -297,17 +292,7 @@ fun AccountSettings(
                     }
                 )
 
-                if (hasUpdate) {
-                    HorizontalDivider(
-                        modifier = Modifier.padding(start = 56.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                    )
 
-                    UpdateAvailableItem(
-                        latestVersion = latestVersionName,
-                        onClick = { uriHandler.openUri(Updater.getLatestDownloadUrl()) }
-                    )
-                }
             }
 
             // App Version Footer

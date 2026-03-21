@@ -13,45 +13,13 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogProperties
-import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.nikhil.yt.R
-import com.nikhil.yt.constants.DarkModeKey
-import com.nikhil.yt.constants.PureBlackKey
-import com.nikhil.yt.ui.component.BottomSheet
-import com.nikhil.yt.ui.component.BottomSheetMenu
-import com.nikhil.yt.ui.component.LocalMenuState
-import com.nikhil.yt.ui.component.rememberBottomSheetState
-import com.nikhil.yt.ui.screens.BrowseScreen
 import com.nikhil.yt.ui.screens.artist.ArtistAlbumsScreen
 import com.nikhil.yt.ui.screens.artist.ArtistItemsScreen
 import com.nikhil.yt.ui.screens.artist.ArtistScreen
@@ -64,13 +32,11 @@ import com.nikhil.yt.ui.screens.playlist.TopPlaylistScreen
 import com.nikhil.yt.ui.screens.playlist.CachePlaylistScreen
 import com.nikhil.yt.ui.screens.search.OnlineSearchResult
 import com.nikhil.yt.ui.screens.settings.AboutScreen
-import com.nikhil.yt.ui.screens.settings.AccountSettings
 import com.nikhil.yt.ui.screens.settings.AppearanceSettings
 import com.nikhil.yt.ui.screens.settings.CustomizeBackground
 import com.nikhil.yt.ui.screens.settings.BackupAndRestore
 import com.nikhil.yt.ui.screens.settings.ChangelogScreen
 import com.nikhil.yt.ui.screens.settings.ContentSettings
-import com.nikhil.yt.ui.screens.settings.DarkMode
 import com.nikhil.yt.ui.screens.settings.DiscordLoginScreen
 import com.nikhil.yt.ui.screens.settings.DiscordSettings
 import com.nikhil.yt.ui.screens.settings.DebugSettings
@@ -84,16 +50,10 @@ import com.nikhil.yt.ui.screens.settings.PrivacySettings
 import com.nikhil.yt.ui.screens.settings.SettingsScreen
 import com.nikhil.yt.ui.screens.settings.StorageSettings
 import com.nikhil.yt.ui.screens.settings.ThemeCreatorScreen
-import com.nikhil.yt.ui.screens.settings.UpdateScreen
-import com.nikhil.yt.ui.utils.ShowMediaInfo
-import com.nikhil.yt.utils.rememberEnumPreference
-import com.nikhil.yt.utils.rememberPreference
-
 @OptIn(ExperimentalMaterial3Api::class)
 fun NavGraphBuilder.navigationBuilder(
     navController: NavHostController,
     scrollBehavior: TopAppBarScrollBehavior,
-    latestVersionName: String,
 ) {
     composable(Screens.Home.route) {
         HomeScreen(navController)
@@ -303,7 +263,7 @@ fun NavGraphBuilder.navigationBuilder(
         YouTubeBrowseScreen(navController)
     }
     composable("settings") {
-        SettingsScreen(navController, scrollBehavior, latestVersionName)
+        SettingsScreen(navController, scrollBehavior)
     }
     composable("settings/appearance") {
         AppearanceSettings(navController, scrollBehavior)
@@ -347,9 +307,7 @@ fun NavGraphBuilder.navigationBuilder(
     composable("settings/misc") {
         DebugSettings(navController)
     }
-    composable("settings/update") {
-        UpdateScreen(navController, scrollBehavior)
-    }
+
     composable("settings/changelog") {
         ChangelogScreen(navController, scrollBehavior)
     }

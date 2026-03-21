@@ -193,7 +193,6 @@ private fun filterIntegrations(
 fun SettingsScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
-    latestVersionName: String,
 ) {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
@@ -519,30 +518,7 @@ fun SettingsScreen(
                             onClick = { navController.navigate("settings/misc") },
                         ),
                     )
-                    add(
-                        PremiumSettingsItem(
-                            icon = painterResource(R.drawable.update),
-                            title = stringResource(R.string.updates),
-                            subtitle = if (hasUpdate) {
-                                stringResource(R.string.new_version_available)
-                            } else {
-                                BuildConfig.VERSION_NAME
-                            },
-                            showUpdateIndicator = hasUpdate,
-                            accentColor = if (hasUpdate) {
-                                MaterialTheme.colorScheme.tertiary
-                            } else {
-                                MaterialTheme.colorScheme.primary
-                            },
-                            keywords = listOf(
-                                "update",
-                                "version",
-                                "release",
-                                "changelog",
-                            ),
-                            onClick = { navController.navigate("settings/update") },
-                        ),
-                    )
+
                     add(
                         PremiumSettingsItem(
                             icon = painterResource(R.drawable.info),
@@ -821,30 +797,9 @@ fun SettingsScreen(
                         }
                     }
 
-                    item(key = "update") {
-                        AnimatedVisibility(
-                            visible = bannerVisible && hasUpdate,
-                            enter = fadeIn(spring(stiffness = Spring.StiffnessLow)) +
-                                expandVertically(spring(stiffness = Spring.StiffnessLow)) +
-                                slideInVertically(
-                                    initialOffsetY = { -it / 4 },
-                                    animationSpec = spring(
-                                        stiffness = Spring.StiffnessLow,
-                                        dampingRatio = 0.85f,
-                                    ),
-                                ),
-                            exit = fadeOut(tween(300)) + shrinkVertically(tween(300)),
-                        ) {
-                            PremiumUpdateCard(
-                                latestVersion = latestVersionName,
-                                onClick = { navController.navigate("settings/update") },
-                                modifier = Modifier
-                                    .padding(horizontal = 16.dp)
-                                    .padding(bottom = 14.dp),
-                            )
-                        }
-                    }
+
                 }
+
 
                 if (queryText.isBlank() || filteredQuickActions.isNotEmpty()) {
                     item(key = "quickActions") {
@@ -1126,15 +1081,6 @@ private fun SettingsHeroHeader(modifier: Modifier = Modifier) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    Brush.linearGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-                            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.08f),
-                            Color.Transparent,
-                        ),
-                    ),
-                )
                 .padding(horizontal = 20.dp, vertical = 20.dp),
         ) {
             Row(
@@ -1317,113 +1263,6 @@ private fun PremiumPermissionCard(
                             fontWeight = FontWeight.SemiBold,
                         )
                     }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun PremiumUpdateCard(
-    latestVersion: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.97f else 1f,
-        animationSpec = spring(stiffness = Spring.StiffnessMedium),
-        label = "updateScale",
-    )
-
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .scale(scale)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onClick,
-            ),
-        shape = RoundedCornerShape(28.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    Brush.linearGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.24f),
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.16f),
-                            MaterialTheme.colorScheme.surfaceContainerLow,
-                        ),
-                        start = Offset(0f, 0f),
-                        end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY),
-                    ),
-                )
-                .padding(20.dp),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                        .background(
-                            Brush.linearGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f),
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.16f),
-                                ),
-                            ),
-                        ),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.update),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp),
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(16.dp))
-
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    Text(
-                        text = stringResource(R.string.new_version_available),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    Text(
-                        text = "v$latestVersion",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.tertiary,
-                    )
-                }
-
-                Box(
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.arrow_forward),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp),
-                    )
                 }
             }
         }
