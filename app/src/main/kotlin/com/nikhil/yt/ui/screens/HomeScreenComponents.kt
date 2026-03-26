@@ -878,7 +878,7 @@ fun LazyListScope.AccountPlaylistsContainer(
                  AccountPlaylistsTitle(
                     accountName = accountName ?: "",
                     accountImageUrl = accountImageUrl,
-                    onClick = { navController.navigate("account") },
+                    onClick = { navController.navigate("library") },
                     modifier = Modifier
                 )
                 AccountPlaylistsSection(

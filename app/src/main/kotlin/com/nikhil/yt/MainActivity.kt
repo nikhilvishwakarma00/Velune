@@ -191,7 +191,7 @@ import com.nikhil.yt.playback.MusicService
 import com.nikhil.yt.playback.MusicService.MusicBinder
 import com.nikhil.yt.playback.PlayerConnection
 import com.nikhil.yt.playback.queues.ListQueue
-import com.nikhil.yt.ui.component.AccountSettingsDialog
+
 import com.nikhil.yt.ui.component.BottomSheetMenu
 import com.nikhil.yt.ui.component.BottomSheetPage
 import com.nikhil.yt.ui.component.COLLAPSED_ANCHOR
@@ -1026,8 +1026,6 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    var showAccountDialog by remember { mutableStateOf(false) }
-
                     CompositionLocalProvider(
                         LocalDatabase provides database,
                         LocalContentColor provides if (pureBlack) Color.White else contentColorFor(MaterialTheme.colorScheme.surface),
@@ -1183,24 +1181,12 @@ class MainActivity : ComponentActivity() {
                                                             contentDescription = stringResource(R.string.new_release_albums)
                                                         )
                                                     }
-                                                    IconButton(onClick = { showAccountDialog = true }) {
-                                                        BadgedBox(badge = {}) {
-                                                            if (accountImageUrl != null) {
-                                                                AsyncImage(
-                                                                    model = accountImageUrl,
-                                                                    contentDescription = stringResource(R.string.account),
-                                                                    modifier = Modifier
-                                                                        .size(24.dp)
-                                                                        .clip(CircleShape)
-                                                                )
-                                                            } else {
-                                                                Icon(
-                                                                    painter = painterResource(R.drawable.account),
-                                                                    contentDescription = stringResource(R.string.account),
-                                                                    modifier = Modifier.size(24.dp)
-                                                                )
-                                                            }
-                                                        }
+                                                    IconButton(onClick = { navController.navigate("settings") }) {
+                                                        Icon(
+                                                            painter = painterResource(R.drawable.settings),
+                                                            contentDescription = "Settings",
+                                                            modifier = Modifier.size(24.dp)
+                                                        )
                                                     }
                                                 },
                                                 scrollBehavior = if (navBackStackEntry?.destination?.route == Screens.Home.route || navBackStackEntry?.destination?.route == Screens.Library.route) searchBarScrollBehavior else topAppBarScrollBehavior,
@@ -1500,9 +1486,9 @@ class MainActivity : ComponentActivity() {
                                                                     width = 1.dp,
                                                                     color =
                                                                         if (pureBlack) {
-                                                                            Color.White.copy(alpha = 0.08f)
+                                                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
                                                                         } else {
-                                                                            MaterialTheme.colorScheme.outline.copy(alpha = 0.18f)
+                                                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
                                                                         },
                                                                     shape = RoundedCornerShape(28.dp),
                                                                 ),
@@ -1662,13 +1648,6 @@ class MainActivity : ComponentActivity() {
                             state = LocalBottomSheetPageState.current,
                             modifier = Modifier.align(Alignment.BottomCenter)
                         )
-
-                        if (showAccountDialog) {
-                            AccountSettingsDialog(
-                                navController = navController,
-                                onDismiss = { showAccountDialog = false },
-                            )
-                        }
 
                         sharedSong?.let { song ->
                             playerConnection?.let {

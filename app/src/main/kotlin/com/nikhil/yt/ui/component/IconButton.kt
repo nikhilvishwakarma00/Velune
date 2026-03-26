@@ -37,6 +37,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -46,13 +48,15 @@ fun ResizableIconButton(
     color: Color = MaterialTheme.colorScheme.onSurface,
     enabled: Boolean = true,
     indication: Indication? = null,
+    contentDescription: String? = null,
     onClick: () -> Unit = {},
 ) {
     Image(
         painter = painterResource(icon),
-        contentDescription = null,
+        contentDescription = contentDescription,
         colorFilter = ColorFilter.tint(color),
         modifier = modifier
+            .semantics(mergeDescendants = true) { role = Role.Button }
             .clickable(
                 indication = indication ?: ripple(bounded = false),
                 interactionSource = remember { MutableInteractionSource() },

@@ -109,6 +109,15 @@ import com.nikhil.yt.ui.theme.PlayerBackgroundColorUtils
 import com.nikhil.yt.ui.theme.PlayerSliderColors
 import com.nikhil.yt.ui.utils.ShowMediaInfo
 import com.nikhil.yt.utils.makeTimeString
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.progressBarRangeInfo
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
 
 @Composable
 fun PlayerTitleSection(
@@ -133,6 +142,10 @@ fun PlayerTitleSection(
             color = textBackgroundColor,
             modifier =
             Modifier
+                .semantics {
+                    liveRegion = LiveRegionMode.Polite
+                    contentDescription = "Now playing: $title"
+                }
                 .basicMarquee()
                 .combinedClickable(
                     enabled = true,
@@ -640,7 +653,15 @@ fun PlayerSlider(
         onValueChangeFinished = onValueChangeFinished,
         activeColor = textButtonColor,
         isPlaying = isPlaying,
-        modifier = Modifier.padding(horizontal = PlayerHorizontalPadding)
+        modifier = Modifier
+            .padding(horizontal = PlayerHorizontalPadding)
+            .semantics {
+                contentDescription = "Playback position"
+                progressBarRangeInfo = ProgressBarRangeInfo(
+                    current = (sliderPosition ?: position).toFloat(),
+                    range = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
+                )
+            }
     )
 }
 
@@ -820,7 +841,7 @@ fun PlayerPlaybackControls(
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.skip_previous),
-                            contentDescription = null,
+                            contentDescription = "Previous",
                             modifier = Modifier.size(32.dp)
                         )
                     }
@@ -855,7 +876,11 @@ fun PlayerPlaybackControls(
                                         else -> R.drawable.play
                                     }
                                 ),
-                                contentDescription = null,
+                                contentDescription = when {
+                                    playbackState == STATE_ENDED -> "Replay"
+                                    isPlaying -> "Pause"
+                                    else -> "Play"
+                                },
                                 modifier = Modifier.size(42.dp)
                             )
                         }
@@ -876,7 +901,7 @@ fun PlayerPlaybackControls(
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.skip_next),
-                            contentDescription = null,
+                            contentDescription = "Next",
                             modifier = Modifier.size(32.dp)
                         )
                     }
@@ -900,6 +925,11 @@ fun PlayerPlaybackControls(
                         modifier = Modifier
                             .size(40.dp)
                             .clip(RoundedCornerShape(10.dp))
+                            .semantics {
+                                role = Role.Button
+                                contentDescription = "Shuffle"
+                                stateDescription = if (shuffleModeEnabled) "On" else "Off"
+                            }
                             .clickable {
                                 playerConnection.player.shuffleModeEnabled = !shuffleModeEnabled
                             },
@@ -927,7 +957,7 @@ fun PlayerPlaybackControls(
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.skip_previous),
-                            contentDescription = null,
+                            contentDescription = "Previous",
                             tint = textBackgroundColor.copy(alpha = if (canSkipPrevious) 0.9f else 0.4f),
                             modifier = Modifier.size(26.dp)
                         )
@@ -959,7 +989,11 @@ fun PlayerPlaybackControls(
                                         else -> R.drawable.play
                                     }
                                 ),
-                                contentDescription = null,
+                                contentDescription = when {
+                                    playbackState == STATE_ENDED -> "Replay"
+                                    isPlaying -> "Pause"
+                                    else -> "Play"
+                                },
                                 tint = icBackgroundColor,
                                 modifier = Modifier.size(34.dp)
                             )
@@ -978,7 +1012,7 @@ fun PlayerPlaybackControls(
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.skip_next),
-                            contentDescription = null,
+                            contentDescription = "Next",
                             tint = textBackgroundColor.copy(alpha = if (canSkipNext) 0.9f else 0.4f),
                             modifier = Modifier.size(26.dp)
                         )
@@ -988,6 +1022,16 @@ fun PlayerPlaybackControls(
                         modifier = Modifier
                             .size(40.dp)
                             .clip(RoundedCornerShape(10.dp))
+                            .semantics {
+                                role = Role.Button
+                                contentDescription = "Repeat"
+                                stateDescription = when (repeatMode) {
+                                    Player.REPEAT_MODE_OFF -> "Off"
+                                    Player.REPEAT_MODE_ALL -> "Repeat all"
+                                    Player.REPEAT_MODE_ONE -> "Repeat one"
+                                    else -> "Off"
+                                }
+                            }
                             .clickable { playerConnection.player.toggleRepeatMode() },
                         contentAlignment = Alignment.Center
                     ) {
@@ -1109,6 +1153,14 @@ fun PlayerPlaybackControls(
                         modifier = Modifier
                             .padding(horizontal = 20.dp)
                             .size(88.dp)
+                            .semantics {
+                                role = Role.Button
+                                contentDescription = when {
+                                    playbackState == STATE_ENDED -> "Replay"
+                                    isPlaying -> "Pause"
+                                    else -> "Play"
+                                }
+                            }
                     ) {
                         Box(
                             modifier = Modifier.fillMaxSize(),
@@ -1142,7 +1194,12 @@ fun PlayerPlaybackControls(
                             enabled = canSkipNext,
                             shape = RoundedCornerShape(largeRadius),
                             color = textBackgroundColor.copy(alpha = 0.15f),
-                            modifier = Modifier.size(large)
+                            modifier = Modifier
+                                .size(large)
+                                .semantics {
+                                    role = Role.Button
+                                    contentDescription = "Next"
+                                }
                         ) {
                             Box(
                                 modifier = Modifier.fillMaxSize(),
@@ -1167,7 +1224,18 @@ fun PlayerPlaybackControls(
                             color = textBackgroundColor.copy(
                                 alpha = if (repeatMode != Player.REPEAT_MODE_OFF) 0.2f else 0.08f
                             ),
-                            modifier = Modifier.size(small)
+                            modifier = Modifier
+                                .size(small)
+                                .semantics {
+                                    role = Role.Button
+                                    contentDescription = "Repeat"
+                                    stateDescription = when (repeatMode) {
+                                        Player.REPEAT_MODE_OFF -> "Off"
+                                        Player.REPEAT_MODE_ALL -> "Repeat all"
+                                        Player.REPEAT_MODE_ONE -> "Repeat one"
+                                        else -> "Off"
+                                    }
+                                }
                         ) {
                             Box(
                                 modifier = Modifier.fillMaxSize(),
@@ -1266,7 +1334,11 @@ fun PlayerPlaybackControls(
                                     R.drawable.play
                                 },
                             ),
-                            contentDescription = null,
+                            contentDescription = when {
+                                playbackState == STATE_ENDED -> "Replay"
+                                isPlaying -> "Pause"
+                                else -> "Play"
+                            },
                             colorFilter = ColorFilter.tint(iconButtonColor),
                             modifier =
                             Modifier
@@ -1294,6 +1366,7 @@ fun PlayerPlaybackControls(
                 Box(modifier = Modifier.weight(1f)) {
                     ResizableIconButton(
                         icon = if (currentSongLiked) R.drawable.favorite else R.drawable.favorite_border,
+                        contentDescription = if (currentSongLiked) "Dislike" else "Like",
                         color = if (currentSongLiked) MaterialTheme.colorScheme.error else textBackgroundColor,
                         modifier =
                         Modifier
@@ -1343,7 +1416,7 @@ fun PlayerPlaybackControls(
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.skip_previous),
-                                    contentDescription = null,
+                                    contentDescription = "Previous",
                                     tint = MaterialTheme.colorScheme.onSecondaryContainer.copy(
                                         alpha = if (canSkipPrevious) 1f else 0.4f
                                     ),
@@ -1383,7 +1456,11 @@ fun PlayerPlaybackControls(
                                                 else -> R.drawable.play
                                             }
                                         ),
-                                        contentDescription = null,
+                                        contentDescription = when {
+                                            playbackState == STATE_ENDED -> "Replay"
+                                            isPlaying -> "Pause"
+                                            else -> "Play"
+                                        },
                                         tint = iconButtonColor,
                                         modifier = Modifier.size(44.dp)
                                     )
@@ -1411,7 +1488,7 @@ fun PlayerPlaybackControls(
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.skip_next),
-                                    contentDescription = null,
+                                    contentDescription = "Next",
                                     tint = MaterialTheme.colorScheme.onSecondaryContainer.copy(
                                         alpha = if (canSkipNext) 1f else 0.4f
                                     ),
@@ -1437,7 +1514,13 @@ fun PlayerPlaybackControls(
                         color = if (shuffleModeEnabled)
                             MaterialTheme.colorScheme.tertiaryContainer
                         else textBackgroundColor.copy(alpha = 0.08f),
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier
+                            .size(40.dp)
+                            .semantics {
+                                role = Role.Button
+                                contentDescription = "Shuffle"
+                                stateDescription = if (shuffleModeEnabled) "On" else "Off"
+                            }
                     ) {
                         Box(
                             modifier = Modifier.fillMaxSize(),
@@ -1462,7 +1545,18 @@ fun PlayerPlaybackControls(
                         color = if (repeatMode != Player.REPEAT_MODE_OFF)
                             MaterialTheme.colorScheme.tertiaryContainer
                         else textBackgroundColor.copy(alpha = 0.08f),
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier
+                            .size(40.dp)
+                            .semantics {
+                                role = Role.Button
+                                contentDescription = "Repeat"
+                                stateDescription = when (repeatMode) {
+                                    Player.REPEAT_MODE_OFF -> "Off"
+                                    Player.REPEAT_MODE_ALL -> "Repeat all"
+                                    Player.REPEAT_MODE_ONE -> "Repeat one"
+                                    else -> "Off"
+                                }
+                            }
                     ) {
                         Box(
                             modifier = Modifier.fillMaxSize(),

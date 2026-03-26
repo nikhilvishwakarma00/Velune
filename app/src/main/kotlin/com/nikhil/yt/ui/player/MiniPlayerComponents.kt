@@ -216,7 +216,7 @@ fun SwipeableMiniPlayerBox(
                     painter = painterResource(
                         if (offsetXAnimatable.value > 0) R.drawable.skip_previous else R.drawable.skip_next
                     ),
-                    contentDescription = null,
+                    contentDescription = if (offsetXAnimatable.value > 0) "Previous" else "Next",
                     tint = MaterialTheme.colorScheme.primary.copy(
                         alpha = (offsetXAnimatable.value.absoluteValue / autoSwipeThreshold).coerceIn(0f, 1f)
                     ),
@@ -243,7 +243,7 @@ fun MiniPlayerPlayPauseButton(
         // Circular progress indicator around the play button
         if (duration > 0) {
             CircularProgressIndicator(
-                progress = { (position.toFloat() / duration.toFloat()).coerceIn(0f, 1f) },
+                progress = { (position.toFloat()/ duration.toFloat()).coerceIn(0f, 1f) },
                 modifier = Modifier.size(48.dp),
                 color = MaterialTheme.colorScheme.primary,
                 strokeWidth = 3.dp,
@@ -292,7 +292,7 @@ fun MiniPlayerPlayPauseButton(
                             R.drawable.play
                         }
                     ),
-                    contentDescription = null,
+                    contentDescription = if (isPlaying) "Pause" else "Play",
                     modifier = Modifier.size(24.dp),
                     tint = MaterialTheme.colorScheme.onSurface
                 )
@@ -356,7 +356,7 @@ fun MiniPlayerActionButtons(
             painter = painterResource(
                 if (isLiked) R.drawable.favorite else R.drawable.favorite_border
             ),
-            contentDescription = null,
+            contentDescription = if (isLiked) "Unlike" else "Like",
             tint = if (isLiked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(24.dp)
         )
@@ -490,7 +490,7 @@ fun MiniPlayerSubscribeButton(mediaMetadata: MediaMetadata) {
                     painter = painterResource(
                         if (isSubscribed) R.drawable.subscribed else R.drawable.subscribe
                     ),
-                    contentDescription = null,
+                    contentDescription = if (isSubscribed) "Unsubscribe" else "Subscribe",
                     tint = if (isSubscribed)
                         MaterialTheme.colorScheme.primary
                     else

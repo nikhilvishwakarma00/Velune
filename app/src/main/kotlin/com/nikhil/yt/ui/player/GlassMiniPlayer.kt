@@ -104,13 +104,8 @@ fun GlassMiniPlayer(
                     }
                 )
                 .border(
-                    width = 0.5.dp,
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            glassStyle.borderColor.copy(alpha = glassStyle.borderAlpha),
-                            glassStyle.borderColor.copy(alpha = glassStyle.borderAlpha * 0.3f),
-                        )
-                    ),
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
                     shape = pillShape
                 )
         ) {

@@ -449,6 +449,18 @@
           <option name="screenY" value="3088" />
         </PersistentDeviceSelectionData>
         <PersistentDeviceSelectionData>
+          <option name="api" value="36" />
+          <option name="brand" value="samsung" />
+          <option name="codename" value="b5qsqw" />
+          <option name="id" value="b5qsqw" />
+          <option name="labId" value="google" />
+          <option name="manufacturer" value="Samsung" />
+          <option name="name" value="Galaxy Z Flip 5" />
+          <option name="screenDensity" value="340" />
+          <option name="screenX" value="748" />
+          <option name="screenY" value="720" />
+        </PersistentDeviceSelectionData>
+        <PersistentDeviceSelectionData>
           <option name="api" value="34" />
           <option name="brand" value="samsung" />
           <option name="codename" value="b6q" />

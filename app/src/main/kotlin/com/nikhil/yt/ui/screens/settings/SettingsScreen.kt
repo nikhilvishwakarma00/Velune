@@ -37,7 +37,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -45,6 +44,7 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -95,14 +95,25 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
 import kotlinx.coroutines.delay
+import com.nikhil.yt.App.Companion.forgetAccount
 import com.nikhil.yt.BuildConfig
 import com.nikhil.yt.LocalPlayerAwareWindowInsets
 import com.nikhil.yt.R
+import com.nikhil.yt.constants.InnerTubeCookieKey
+import com.nikhil.yt.innertube.utils.parseCookieString
 import com.nikhil.yt.ui.component.IconButton
 import com.nikhil.yt.ui.component.TopSearch
 import com.nikhil.yt.ui.utils.backToMain
+import com.nikhil.yt.utils.rememberPreference
+import com.nikhil.yt.viewmodels.HomeViewModel
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.layout.ContentScale
 
 data class SettingsQuickAction(
     val icon: Painter,
@@ -168,7 +179,7 @@ private fun matchesSearchQuery(
     if (item.badge?.contains(query, ignoreCase = true) == true) return true
     return item.keywords.any { keyword ->
         keyword.contains(query, ignoreCase = true) ||
-            query.contains(keyword, ignoreCase = true)
+                query.contains(keyword, ignoreCase = true)
     }
 }
 
@@ -198,6 +209,15 @@ fun SettingsScreen(
     val focusManager = LocalFocusManager.current
     val isAndroid12OrLater = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     val listState = rememberLazyListState()
+
+    // Account state
+    val viewModel: HomeViewModel = hiltViewModel()
+    val accountName by viewModel.accountName.collectAsState()
+    val accountImageUrl by viewModel.accountImageUrl.collectAsState()
+    val (innerTubeCookie, onInnerTubeCookieChange) = rememberPreference(InnerTubeCookieKey, "")
+    val isLoggedIn = remember(innerTubeCookie) {
+        "SAPISID" in parseCookieString(innerTubeCookie)
+    }
 
     var isSearching by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf(TextFieldValue()) }
@@ -230,7 +250,7 @@ fun SettingsScreen(
     var isNotificationGranted by remember {
         mutableStateOf(
             notificationPermission == null ||
-                ContextCompat.checkSelfPermission(context, notificationPermission) == PackageManager.PERMISSION_GRANTED
+                    ContextCompat.checkSelfPermission(context, notificationPermission) == PackageManager.PERMISSION_GRANTED
         )
     }
 
@@ -482,7 +502,7 @@ fun SettingsScreen(
                                         when (e) {
                                             is ActivityNotFoundException,
                                             is SecurityException,
-                                            -> {
+                                                -> {
                                                 Toast.makeText(
                                                     context,
                                                     R.string.open_app_settings_error,
@@ -711,9 +731,9 @@ fun SettingsScreen(
     ) {
         derivedStateOf {
             filteredQuickActions.isNotEmpty() ||
-                filteredCategories.isNotEmpty() ||
-                filteredIntegrations.isNotEmpty() ||
-                filteredInternalSettings.isNotEmpty()
+                    filteredCategories.isNotEmpty() ||
+                    filteredIntegrations.isNotEmpty() ||
+                    filteredInternalSettings.isNotEmpty()
         }
     }
 
@@ -747,13 +767,13 @@ fun SettingsScreen(
                     AnimatedVisibility(
                         visible = heroVisible,
                         enter = fadeIn(spring(stiffness = Spring.StiffnessLow)) +
-                            slideInVertically(
-                                initialOffsetY = { it / 5 },
-                                animationSpec = spring(
-                                    stiffness = Spring.StiffnessLow,
-                                    dampingRatio = 0.85f,
+                                slideInVertically(
+                                    initialOffsetY = { it / 5 },
+                                    animationSpec = spring(
+                                        stiffness = Spring.StiffnessLow,
+                                        dampingRatio = 0.85f,
+                                    ),
                                 ),
-                            ),
                     ) {
                         SettingsHeroHeader(
                             modifier = Modifier
@@ -763,19 +783,47 @@ fun SettingsScreen(
                     }
                 }
 
+                item(key = "account") {
+                    AnimatedVisibility(
+                        visible = heroVisible,
+                        enter = fadeIn(spring(stiffness = Spring.StiffnessLow)) +
+                                slideInVertically(
+                                    initialOffsetY = { it / 5 },
+                                    animationSpec = spring(stiffness = Spring.StiffnessLow, dampingRatio = 0.85f),
+                                ),
+                    ) {
+                        SettingsAccountCard(
+                            isLoggedIn = isLoggedIn,
+                            accountName = accountName,
+                            accountImageUrl = accountImageUrl,
+                            onAccountClick = {
+                                if (isLoggedIn) navController.navigate("settings/account")
+                                else navController.navigate("login")
+                            },
+                            onLogout = {
+                                onInnerTubeCookieChange("")
+                                forgetAccount(context)
+                            },
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp)
+                                .padding(bottom = 14.dp),
+                        )
+                    }
+                }
+
                 if (queryText.isBlank()) {
                     item(key = "permission") {
                         AnimatedVisibility(
                             visible = bannerVisible && shouldShowPermissionHint,
                             enter = fadeIn(spring(stiffness = Spring.StiffnessLow)) +
-                                expandVertically(spring(stiffness = Spring.StiffnessLow)) +
-                                slideInVertically(
-                                    initialOffsetY = { -it / 4 },
-                                    animationSpec = spring(
-                                        stiffness = Spring.StiffnessLow,
-                                        dampingRatio = 0.85f,
+                                    expandVertically(spring(stiffness = Spring.StiffnessLow)) +
+                                    slideInVertically(
+                                        initialOffsetY = { -it / 4 },
+                                        animationSpec = spring(
+                                            stiffness = Spring.StiffnessLow,
+                                            dampingRatio = 0.85f,
+                                        ),
                                     ),
-                                ),
                             exit = fadeOut(tween(300)) + shrinkVertically(tween(300)),
                         ) {
                             PremiumPermissionCard(
@@ -796,52 +844,23 @@ fun SettingsScreen(
                             )
                         }
                     }
-
-
                 }
 
 
-                if (queryText.isBlank() || filteredQuickActions.isNotEmpty()) {
-                    item(key = "quickActions") {
-                        AnimatedVisibility(
-                            visible = quickActionsVisible,
-                            enter = fadeIn(spring(stiffness = Spring.StiffnessLow)) +
-                                slideInVertically(
-                                    initialOffsetY = { it / 6 },
-                                    animationSpec = spring(
-                                        stiffness = Spring.StiffnessLow,
-                                        dampingRatio = 0.85f,
-                                    ),
-                                ),
-                        ) {
-                            val actionsToShow = if (queryText.isBlank()) {
-                                wrappedQuickActions
-                            } else {
-                                filteredQuickActions
-                            }
-                            SettingsQuickActionsGrid(
-                                title = stringResource(R.string.quick_picks),
-                                actions = actionsToShow,
-                                modifier = Modifier
-                                    .padding(horizontal = 16.dp)
-                                    .padding(bottom = 12.dp),
-                            )
-                        }
-                    }
-                }
+
 
                 if (queryText.isBlank() || filteredIntegrations.isNotEmpty()) {
                     item(key = "integrations") {
                         AnimatedVisibility(
                             visible = integrationsVisible,
                             enter = fadeIn(spring(stiffness = Spring.StiffnessLow)) +
-                                slideInVertically(
-                                    initialOffsetY = { it / 6 },
-                                    animationSpec = spring(
-                                        stiffness = Spring.StiffnessLow,
-                                        dampingRatio = 0.85f,
+                                    slideInVertically(
+                                        initialOffsetY = { it / 6 },
+                                        animationSpec = spring(
+                                            stiffness = Spring.StiffnessLow,
+                                            dampingRatio = 0.85f,
+                                        ),
                                     ),
-                                ),
                         ) {
                             val toShow = if (queryText.isBlank()) {
                                 wrappedIntegrations
@@ -892,10 +911,10 @@ fun SettingsScreen(
                         AnimatedVisibility(
                             visible = categoriesVisible,
                             enter = fadeIn(tween(420, delayMillis = index * 60)) +
-                                slideInVertically(
-                                    initialOffsetY = { it / 5 },
-                                    animationSpec = tween(420, delayMillis = index * 60),
-                                ),
+                                    slideInVertically(
+                                        initialOffsetY = { it / 5 },
+                                        animationSpec = tween(420, delayMillis = index * 60),
+                                    ),
                         ) {
                             PremiumSettingsSection(
                                 category = category,
@@ -1017,19 +1036,6 @@ fun SettingsScreen(
                             )
                         }
                     } else {
-                        if (filteredQuickActions.isNotEmpty()) {
-                            item {
-                                Spacer(modifier = Modifier.height(8.dp))
-                                SettingsQuickActionsGrid(
-                                    title = stringResource(R.string.quick_picks),
-                                    actions = filteredQuickActions,
-                                    modifier = Modifier
-                                        .padding(horizontal = 16.dp)
-                                        .padding(top = 8.dp, bottom = 12.dp),
-                                )
-                            }
-                        }
-
                         if (filteredIntegrations.isNotEmpty()) {
                             item {
                                 SettingsIntegrationsRow(
@@ -1070,59 +1076,37 @@ fun SettingsScreen(
 
 @Composable
 private fun SettingsHeroHeader(modifier: Modifier = Modifier) {
-    Card(
+    Row(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(32.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.85f),
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 20.dp),
+                .size(48.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)),
+            contentAlignment = Alignment.Center,
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(52.dp)
-                        .clip(RoundedCornerShape(18.dp))
-                        .background(
-                            Brush.linearGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.16f),
-                                    MaterialTheme.colorScheme.tertiary.copy(alpha = 0.12f),
-                                ),
-                            ),
-                        ),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.small_icon),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(28.dp),
-                    )
-                }
-
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(
-                        text = stringResource(R.string.app_name),
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                    Text(
-                        text = "v${BuildConfig.VERSION_NAME}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
+            Icon(
+                painter = painterResource(R.drawable.small_icon),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(26.dp),
+            )
+        }
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+                text = stringResource(R.string.app_name),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = "v${BuildConfig.VERSION_NAME}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
@@ -1542,59 +1526,23 @@ private fun PremiumSettingsSection(
     category: SettingsCategory,
     modifier: Modifier = Modifier,
 ) {
-    val sectionAccent = category.items.firstOrNull()?.let { item ->
-        if (item.accentColor.isSpecified) item.accentColor else null
-    } ?: MaterialTheme.colorScheme.primary
-
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(28.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-    ) {
-        Column {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(2.5.dp)
-                    .background(
-                        Brush.horizontalGradient(
-                            colors = listOf(
-                                sectionAccent.copy(alpha = 0.5f),
-                                sectionAccent.copy(alpha = 0.15f),
-                                Color.Transparent,
-                            ),
-                        ),
-                    ),
-            )
-
-            Column(modifier = Modifier.padding(vertical = 6.dp)) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 18.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Text(
-                        text = category.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    Box(
-                        modifier = Modifier
-                            .size(4.dp)
-                            .clip(CircleShape)
-                            .background(sectionAccent.copy(alpha = 0.5f)),
-                    )
-                    Text(
-                        text = "${category.items.size}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-
+    Column(modifier = modifier.fillMaxWidth()) {
+        Text(
+            text = category.title.uppercase(),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 6.dp),
+        )
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        ) {
+            Column(modifier = Modifier.padding(vertical = 4.dp)) {
                 category.items.forEachIndexed { index, item ->
                     PremiumSettingsItemRow(
                         item = item,
@@ -1743,6 +1691,109 @@ private fun PremiumSettingsItemRow(
                 thickness = 0.4.dp,
                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
             )
+        }
+    }
+}
+
+@Composable
+private fun SettingsAccountCard(
+    isLoggedIn: Boolean,
+    accountName: String,
+    accountImageUrl: String?,
+    onAccountClick: () -> Unit,
+    onLogout: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val cardColor by animateColorAsState(
+        targetValue = if (isLoggedIn)
+            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+        else
+            MaterialTheme.colorScheme.surfaceContainerLow,
+        animationSpec = androidx.compose.animation.core.tween(300),
+        label = "accountCardColor",
+    )
+
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .clickable(onClick = onAccountClick),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = cardColor),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(52.dp)
+                    .clip(CircleShape)
+                    .background(
+                        if (isLoggedIn) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                        else MaterialTheme.colorScheme.surfaceContainerHighest,
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (isLoggedIn && accountImageUrl != null) {
+                    AsyncImage(
+                        model = accountImageUrl,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.size(52.dp).clip(CircleShape),
+                    )
+                } else {
+                    Icon(
+                        painter = painterResource(if (isLoggedIn) R.drawable.account else R.drawable.login),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                        tint = if (isLoggedIn) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.width(14.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = if (isLoggedIn) accountName else stringResource(R.string.login),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = if (isLoggedIn) stringResource(R.string.account)
+                    else stringResource(R.string.not_logged_in),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            if (isLoggedIn) {
+                FilledTonalButton(
+                    onClick = onLogout,
+                    shape = RoundedCornerShape(12.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.action_logout),
+                        style = MaterialTheme.typography.labelMedium,
+                    )
+                }
+            } else {
+                Icon(
+                    painter = painterResource(R.drawable.navigate_next),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    modifier = Modifier.size(20.dp),
+                )
+            }
         }
     }
 }

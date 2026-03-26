@@ -162,6 +162,11 @@ private fun NewMiniPlayer(
                 .background(
                     color = MaterialTheme.colorScheme.surfaceContainer // Same as navigation bar color
                 )
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                    shape = RoundedCornerShape(32.dp)
+                )
         ) {
             NewMiniPlayerContent(
                 pureBlack = pureBlack,
@@ -344,7 +349,11 @@ private fun LegacyMiniPlayer(
                                 R.drawable.play
                             },
                         ),
-                        contentDescription = null,
+                        contentDescription = when {
+                            playbackState == Player.STATE_ENDED -> "Replay"
+                            isPlaying -> "Pause"
+                            else -> "Play"
+                        },
                     )
                 }
             }
@@ -355,7 +364,7 @@ private fun LegacyMiniPlayer(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.skip_next),
-                    contentDescription = null,
+                    contentDescription = "Next",
                 )
             }
         }
@@ -371,7 +380,7 @@ private fun LegacyMiniPlayer(
                     painter = painterResource(
                         if (offsetXAnimatable.value > 0) R.drawable.skip_previous else R.drawable.skip_next
                     ),
-                    contentDescription = null,
+                    contentDescription = if (offsetXAnimatable.value > 0) "Previous" else "Next",
                     tint = MaterialTheme.colorScheme.primary.copy(
                         alpha = (offsetXAnimatable.value.absoluteValue / autoSwipeThreshold).coerceIn(0f, 1f)
                     ),
