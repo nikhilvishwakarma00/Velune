@@ -35,6 +35,7 @@
 </div>
 
 ---
+[<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroidButtonGreyBorder_nofont.png" height="80" alt="Get it at IzzyOnDroid">](https://apt.izzysoft.de/packages/com.nikhil.yt)
 
 ## 🚀 Why Velune?
 
