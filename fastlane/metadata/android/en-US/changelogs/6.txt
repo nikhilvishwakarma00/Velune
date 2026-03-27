@@ -1,0 +1,7 @@
+• Completely redesigned Settings page
+• Settings icon added to home screen
+• Full TalkBack accessibility support
+• Player buttons now properly labeled
+• Shuffle and Repeat state descriptions
+• Seek bar accessibility improvements
+• Now playing live region announcements
