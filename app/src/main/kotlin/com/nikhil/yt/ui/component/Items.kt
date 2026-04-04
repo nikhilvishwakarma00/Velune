@@ -1513,7 +1513,7 @@ fun BoxScope.AlbumPlayButton(
         ) {
             Icon(
                 painter = painterResource(R.drawable.play),
-                contentDescription = null,
+                contentDescription = "Play",
                 tint = Color.White
             )
         }

@@ -1121,7 +1121,12 @@ fun PlayerPlaybackControls(
                             enabled = canSkipPrevious,
                             shape = RoundedCornerShape(largeRadius),
                             color = textBackgroundColor.copy(alpha = 0.15f),
-                            modifier = Modifier.size(large)
+                            modifier = Modifier
+                                .size(large)
+                                .semantics {
+                                    role = Role.Button
+                                    contentDescription = "Previous"
+                                }
                         ) {
                             Box(
                                 modifier = Modifier.fillMaxSize(),
@@ -1276,6 +1281,7 @@ fun PlayerPlaybackControls(
                             Player.REPEAT_MODE_ONE -> R.drawable.repeat_one
                             else -> throw IllegalStateException()
                         },
+                        contentDescription = "Toggle repeat",
                         color = textBackgroundColor,
                         modifier = Modifier
                             .size(32.dp)
@@ -1291,6 +1297,7 @@ fun PlayerPlaybackControls(
                 Box(modifier = Modifier.weight(1f)) {
                     ResizableIconButton(
                         icon = R.drawable.skip_previous,
+                        contentDescription = "Previous",
                         enabled = canSkipPrevious,
                         color = textBackgroundColor,
                         modifier =
@@ -1353,6 +1360,7 @@ fun PlayerPlaybackControls(
                 Box(modifier = Modifier.weight(1f)) {
                     ResizableIconButton(
                         icon = R.drawable.skip_next,
+                        contentDescription = "Next",
                         enabled = canSkipNext,
                         color = textBackgroundColor,
                         modifier =

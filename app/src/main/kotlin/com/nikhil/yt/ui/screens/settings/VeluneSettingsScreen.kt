@@ -16,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -48,15 +49,17 @@ fun VeluneSettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {},
+                title = { Text("Settings", fontSize = 20.sp) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             painter = painterResource(R.drawable.arrow_back),
-                            contentDescription = "Back"
+                            contentDescription = "Back",
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                 },
+
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background
                 )
@@ -68,233 +71,142 @@ fun VeluneSettingsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(horizontal = 16.dp)
         ) {
 
-            // Velune Logo + Version Header
             item {
-                Column(
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .padding(vertical = 16.dp, horizontal = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(72.dp)
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(MaterialTheme.colorScheme.surfaceContainer),
+                            .size(60.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Color(0xFF3E3524)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_launcher_foreground),
-                            contentDescription = "Velune",
-                            modifier = Modifier.size(52.dp),
-                            tint = MaterialTheme.colorScheme.onSurface
+                        Text(
+                            text = "V",
+                            style = MaterialTheme.typography.headlineLarge,
+                            fontWeight = FontWeight.Normal,
+                            color = Color(0xFFFFD580)
                         )
                     }
-                    Spacer(Modifier.height(10.dp))
-                    Text(
-                        text = "Velune",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "v${BuildConfig.VERSION_NAME}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-
-            // Login / Account Section
-            item {
-                SettingsSectionCard {
-                    if (isLoggedIn) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { showLogoutDialog = true }
-                                .padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(14.dp)
-                        ) {
-                            if (accountImageUrl != null) {
-                                AsyncImage(
-                                    model = accountImageUrl,
-                                    contentDescription = accountName,
-                                    modifier = Modifier
-                                        .size(48.dp)
-                                        .clip(CircleShape)
-                                )
-                            } else {
-                                Box(
-                                    modifier = Modifier
-                                        .size(48.dp)
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.primaryContainer),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = accountName.firstOrNull()?.uppercase() ?: "?",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-                            }
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = accountName,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                                Text(
-                                    text = "YouTube Music Account",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            Icon(
-                                painter = painterResource(R.drawable.navigate_next),
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    } else {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { navController.navigate("login") }
-                                .padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(14.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.account),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(24.dp),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = "Sign In",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                                Text(
-                                    text = "Connect your YouTube Music account",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            Icon(
-                                painter = painterResource(R.drawable.navigate_next),
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+                    Spacer(Modifier.width(16.dp))
+                    Column {
+                        Text(
+                            text = "Velune",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Normal
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = "v${BuildConfig.VERSION_NAME}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }
 
-            // Appearance
             item {
-                SettingsSectionCard {
-                    SettingsItem(
-                        icon = painterResource(R.drawable.palette),
-                        title = "Appearance",
-                        subtitle = "Theme, colors, display",
-                        onClick = { navController.navigate("settings/appearance") }
+                SettingsItemScreenshotStyle(
+                    icon = painterResource(R.drawable.palette),
+                    title = "Appearance",
+                    onClick = { navController.navigate("settings/appearance") }
+                )
+            }
+
+            item {
+                if (isLoggedIn) {
+                    SettingsItemAccountStyle(
+                        model = accountImageUrl,
+                        fallbackText = accountName.firstOrNull()?.uppercase() ?: "?",
+                        title = "Account",
+                        onClick = { navController.navigate("settings/account") }
+                    )
+                } else {
+                    SettingsItemScreenshotStyle(
+                        icon = painterResource(R.drawable.account),
+                        title = "Account",
+                        onClick = { navController.navigate("settings/account") }
                     )
                 }
             }
 
-            // Player & Audio
             item {
-                SettingsSectionCard {
-                    SettingsItem(
-                        icon = painterResource(R.drawable.play),
-                        title = "Player & Audio",
-                        subtitle = "Quality, playback, equalizer",
-                        onClick = { navController.navigate("settings/player") }
-                    )
-                    HorizontalDivider(
-                        modifier = Modifier.padding(start = 56.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                    )
-                    SettingsItem(
-                        icon = painterResource(R.drawable.library_music),
-                        title = "Content",
-                        subtitle = "Language, explicit content",
-                        onClick = { navController.navigate("settings/content") }
-                    )
-                    HorizontalDivider(
-                        modifier = Modifier.padding(start = 56.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                    )
-                    SettingsItem(
-                        icon = painterResource(R.drawable.storage),
-                        title = "Storage",
-                        subtitle = "Cache, downloads",
-                        onClick = { navController.navigate("settings/misc") }
-                    )
-                }
+                SettingsItemScreenshotStyle(
+                    icon = painterResource(R.drawable.multi_user),
+                    title = "Listen Together",
+                    onClick = { navController.navigate("settings/music_together") }
+                )
             }
 
-            // Privacy
             item {
-                SettingsSectionCard {
-                    SettingsItem(
-                        icon = painterResource(R.drawable.security),
-                        title = "Privacy",
-                        subtitle = "Data, permissions",
-                        onClick = { navController.navigate("settings/privacy") }
-                    )
-                }
+                SettingsItemScreenshotStyle(
+                    icon = painterResource(R.drawable.play),
+                    title = "Player and audio",
+                    onClick = { navController.navigate("settings/player") }
+                )
             }
 
-            // Integrations
             item {
-                SettingsSectionCard {
-                    SettingsItem(
-                        icon = painterResource(R.drawable.integration),
-                        title = "Integrations",
-                        subtitle = "Discord, Last.fm, ListenBrainz",
-                        onClick = { navController.navigate("settings/discord") }
-                    )
-                    HorizontalDivider(
-                        modifier = Modifier.padding(start = 56.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                    )
-                    SettingsItem(
-                        icon = painterResource(R.drawable.person),
-                        title = "Velune Music Together",
-                        subtitle = "Listen together with friends",
-                        onClick = { navController.navigate("settings/music_together") }
-                    )
-                }
+                SettingsItemScreenshotStyle(
+                    icon = painterResource(R.drawable.language),
+                    title = "Content",
+                    onClick = { navController.navigate("settings/content") }
+                )
             }
 
-            // About
             item {
-                SettingsSectionCard {
-                    SettingsItem(
-                        icon = painterResource(R.drawable.info),
-                        title = "About Velune",
-                        subtitle = "Version, credits, licenses",
-                        onClick = { navController.navigate("settings/about") }
-                    )
-                }
+                SettingsItemScreenshotStyle(
+                    icon = painterResource(R.drawable.discord),
+                    title = "Discord",
+                    onClick = { navController.navigate("settings/discord") }
+                )
+            }
+
+            item {
+                SettingsItemScreenshotStyle(
+                    icon = painterResource(R.drawable.integration),
+                    title = "Integration",
+                    onClick = { navController.navigate("settings/integration") }
+                )
+            }
+
+            item {
+                SettingsItemScreenshotStyle(
+                    icon = painterResource(R.drawable.security),
+                    title = "Privacy",
+                    onClick = { navController.navigate("settings/privacy") }
+                )
+            }
+
+            item {
+                SettingsItemScreenshotStyle(
+                    icon = painterResource(R.drawable.storage),
+                    title = "Storage",
+                    onClick = { navController.navigate("settings/storage") }
+                )
+            }
+
+            item {
+                SettingsItemScreenshotStyle(
+                    icon = painterResource(R.drawable.backup),
+                    title = "Backup and restore",
+                    onClick = { navController.navigate("settings/backup_restore") }
+                )
+            }
+
+            item {
+                SettingsItemScreenshotStyle(
+                    icon = painterResource(R.drawable.info),
+                    title = "About",
+                    onClick = { navController.navigate("settings/about") }
+                )
             }
 
             item { Spacer(Modifier.height(32.dp)) }
@@ -325,67 +237,92 @@ fun VeluneSettingsScreen(
 }
 
 @Composable
-private fun SettingsSectionCard(
-    content: @Composable ColumnScope.() -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-    ) {
-        Column(content = content)
-    }
-}
-
-@Composable
-private fun SettingsItem(
+private fun SettingsItemScreenshotStyle(
     icon: Painter,
     title: String,
-    subtitle: String,
     onClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 14.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(14.dp)
+            .padding(vertical = 30.dp, horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                painter = icon,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
-        }
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium
-            )
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+        Icon(
+            painter = icon,
+            contentDescription = null,
+            modifier = Modifier.size(24.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.width(20.dp))
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Normal,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Spacer(modifier = Modifier.weight(1f))
         Icon(
             painter = painterResource(R.drawable.navigate_next),
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(18.dp)
+            modifier = Modifier.size(24.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+private fun SettingsItemAccountStyle(
+    model: String?,
+    fallbackText: String,
+    title: String,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 22.dp, horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (model != null) {
+            AsyncImage(
+                model = model,
+                contentDescription = title,
+                modifier = Modifier
+                    .size(24.dp)
+                    .clip(CircleShape)
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = fallbackText,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+        Spacer(modifier = Modifier.width(20.dp))
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Normal,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Spacer(modifier = Modifier.weight(1f))
+        Icon(
+            painter = painterResource(R.drawable.navigate_next),
+            contentDescription = null,
+            modifier = Modifier.size(24.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }

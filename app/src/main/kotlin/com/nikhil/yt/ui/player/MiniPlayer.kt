@@ -84,7 +84,7 @@ import com.nikhil.yt.constants.MiniPlayerHeight
 import com.nikhil.yt.constants.SwipeSensitivityKey
 import com.nikhil.yt.constants.ThumbnailCornerRadius
 import com.nikhil.yt.constants.UseNewMiniPlayerDesignKey
-import com.nikhil.yt.constants.GlassMiniPlayerKey
+
 import com.nikhil.yt.constants.CropThumbnailToSquareKey
 import com.nikhil.yt.db.entities.ArtistEntity
 import com.nikhil.yt.extensions.togglePlayPause
@@ -103,17 +103,8 @@ fun MiniPlayer(
     pureBlack: Boolean,
 ) {
     val useNewMiniPlayerDesign by rememberPreference(UseNewMiniPlayerDesignKey, true)
-    val glassMiniPlayer by rememberPreference(GlassMiniPlayerKey, false)
-    val useGlass = glassMiniPlayer && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
 
-    if (useGlass) {
-        GlassMiniPlayer(
-            position = position,
-            duration = duration,
-            modifier = modifier,
-            pureBlack = pureBlack
-        )
-    } else if (useNewMiniPlayerDesign) {
+    if (useNewMiniPlayerDesign) {
         NewMiniPlayer(
             position = position,
             duration = duration,
@@ -163,8 +154,8 @@ private fun NewMiniPlayer(
                     color = MaterialTheme.colorScheme.surfaceContainer // Same as navigation bar color
                 )
                 .border(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                    width = 0.5.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
                     shape = RoundedCornerShape(32.dp)
                 )
         ) {

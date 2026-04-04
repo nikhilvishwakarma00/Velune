@@ -83,8 +83,14 @@ fun LoginScreen(
                                     accountName = it.name
                                     accountEmail = it.email.orEmpty()
                                     accountChannelHandle = it.channelHandle.orEmpty()
+                                    if (navController.currentBackStackEntry?.destination?.route == "login") {
+                                        navController.navigateUp()
+                                    }
                                 }.onFailure {
                                     reportException(it)
+                                    if (navController.currentBackStackEntry?.destination?.route == "login") {
+                                        navController.navigateUp()
+                                    }
                                 }
                             }
                         }

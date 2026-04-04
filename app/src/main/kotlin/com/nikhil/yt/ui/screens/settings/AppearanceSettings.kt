@@ -101,8 +101,7 @@ import com.nikhil.yt.constants.VeluneCanvasKey
 import com.nikhil.yt.constants.ThumbnailCornerRadiusKey
 import com.nikhil.yt.constants.CropThumbnailToSquareKey
 import com.nikhil.yt.constants.DisableBlurKey
-import com.nikhil.yt.constants.GlassNavigationBarKey
-import com.nikhil.yt.constants.GlassMiniPlayerKey
+
 import com.nikhil.yt.constants.UseLyricsV2Key
 import com.nikhil.yt.ui.component.DefaultDialog
 import com.nikhil.yt.ui.component.EnumListPreference
@@ -217,15 +216,7 @@ fun AppearanceSettings(
         defaultValue = false
     )
 
-    val (glassNavigationBar, onGlassNavigationBarChange) = rememberPreference(
-        GlassNavigationBarKey,
-        defaultValue = false
-    )
 
-    val (glassMiniPlayer, onGlassMiniPlayerChange) = rememberPreference(
-        GlassMiniPlayerKey,
-        defaultValue = false
-    )
 
     val (swipeToSong, onSwipeToSongChange) = rememberPreference(
         SwipeToSongKey,
@@ -428,19 +419,7 @@ fun AppearanceSettings(
             onCheckedChange = onUseNewMiniPlayerDesignChange,
         )
 
-        SwitchPreference(
-            title = { Text(stringResource(R.string.glass_mini_player)) },
-            icon = { Icon(painterResource(R.drawable.auto_awesome), null) },
-            checked = glassMiniPlayer,
-            onCheckedChange = onGlassMiniPlayerChange,
-        )
 
-        SwitchPreference(
-            title = { Text(stringResource(R.string.glass_navigation_bar)) },
-            icon = { Icon(painterResource(R.drawable.blur_on), null) },
-            checked = glassNavigationBar,
-            onCheckedChange = onGlassNavigationBarChange,
-        )
 
         SwitchPreference(
             title = { Text(stringResource(R.string.new_library_design)) },

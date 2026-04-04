@@ -123,8 +123,8 @@ fun GlassNavigationBar(
                         }
                     )
                     .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                        width = 0.5.dp,
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
                         shape = glassShape
                     )
         ) {
@@ -215,7 +215,7 @@ private fun RowScope.GlassNavigationBarItem(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val selectedIndicatorAlpha by animateFloatAsState(
-        targetValue = if (selected) 0.12f else 0f,
+        targetValue = if (selected) 0.22f else 0f,
         label = "indicatorAlpha"
     )
 
@@ -244,7 +244,7 @@ private fun RowScope.GlassNavigationBarItem(
                         )
                     }
                 }
-                .padding(horizontal = 20.dp, vertical = 4.dp),
+                .padding(horizontal = 24.dp, vertical = 6.dp),
             contentAlignment = Alignment.Center,
         ) {
             icon()

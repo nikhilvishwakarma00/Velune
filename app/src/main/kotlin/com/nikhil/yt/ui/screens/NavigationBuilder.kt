@@ -68,6 +68,7 @@ import com.nikhil.yt.ui.screens.settings.AppearanceSettings
 import com.nikhil.yt.ui.screens.settings.CustomizeBackground
 import com.nikhil.yt.ui.screens.settings.BackupAndRestore
 import com.nikhil.yt.ui.screens.settings.VeluneSettingsScreen
+import com.nikhil.yt.ui.screens.settings.VeluneAccountSettingsScreen
 import com.nikhil.yt.ui.screens.settings.ChangelogScreen
 import com.nikhil.yt.ui.screens.settings.ContentSettings
 import com.nikhil.yt.ui.screens.settings.DarkMode
@@ -300,6 +301,9 @@ fun NavGraphBuilder.navigationBuilder(
     }
     composable("settings") {
         VeluneSettingsScreen(navController)
+    }
+    composable("settings/account") {
+        VeluneAccountSettingsScreen(navController)
     }
     composable("settings/appearance") {
         AppearanceSettings(navController, scrollBehavior)

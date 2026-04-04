@@ -4,221 +4,39 @@
  * Licensed Under GPL-3.0
  */
 
-
-
 package com.nikhil.yt.ui.screens.settings
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.nikhil.yt.BuildConfig
+import com.nikhil.yt.LocalPlayerAwareWindowInsets
 import com.nikhil.yt.R
 import com.nikhil.yt.ui.component.IconButton
 import com.nikhil.yt.ui.utils.backToMain
-import com.nikhil.yt.LocalPlayerAwareWindowInsets
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.datastore.preferences.core.edit
-import io.ktor.client.HttpClient
-import io.ktor.client.request.get
-import io.ktor.client.request.headers
-import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.HttpStatusCode
-import com.nikhil.yt.constants.GitHubContributorsEtagKey
-import com.nikhil.yt.constants.GitHubContributorsJsonKey
-import com.nikhil.yt.constants.GitHubContributorsLastCheckedAtKey
-import com.nikhil.yt.utils.dataStore
-import com.nikhil.yt.utils.getAsync
-import org.json.JSONArray
-
-data class TeamMember(
-    val avatarUrl: String,
-    val name: String,
-    val position: String,
-    val profileUrl: String? = null,
-    val github: String? = null,
-    val website: String? = null,
-    val discord: String? = null
-
-)
-
-private data class GitHubContributor(
-    val login: String,
-    val avatarUrl: String,
-    val profileUrl: String,
-)
-
-private sealed interface ContributorsState {
-    data object Loading : ContributorsState
-    data class Loaded(val contributors: List<GitHubContributor>) : ContributorsState
-    data object Error : ContributorsState
-}
-
-private const val ContributorsCacheCheckIntervalMs: Long = 24 * 60 * 60 * 1000L
-
-private fun parseContributorsJson(
-    json: String,
-): List<GitHubContributor> {
-    val jsonArray = JSONArray(json)
-    val contributors = ArrayList<GitHubContributor>(jsonArray.length())
-    for (i in 0 until jsonArray.length()) {
-        val item = jsonArray.getJSONObject(i)
-        val login = item.optString("login", "")
-        val type = item.optString("type", "")
-        val avatarUrl = item.optString("avatar_url", "")
-        val profileUrl = item.optString("html_url", "")
-        val isBot =
-            type.equals("Bot", ignoreCase = true) ||
-                login.lowercase().endsWith("[bot]")
-
-        if (!isBot && login.isNotBlank() && avatarUrl.isNotBlank()) {
-            contributors.add(
-                GitHubContributor(
-                    login = login,
-                    avatarUrl = avatarUrl,
-                    profileUrl = profileUrl,
-                )
-            )
-        }
-    }
-    return contributors
-}
-
-private data class ContributorsNetworkResult(
-    val status: HttpStatusCode,
-    val body: String?,
-    val etag: String?,
-)
-
-private suspend fun fetchRepoContributorsNetwork(
-    client: HttpClient,
-    owner: String,
-    repo: String,
-    perPage: Int = 100,
-    cachedEtag: String?,
-): ContributorsNetworkResult {
-    val response: HttpResponse =
-        client.get("https://api.github.com/repos/$owner/$repo/contributors?per_page=$perPage") {
-            headers {
-                append("Accept", "application/vnd.github+json")
-                append("User-Agent", "Velune")
-                if (!cachedEtag.isNullOrBlank()) {
-                    append("If-None-Match", cachedEtag)
-                }
-            }
-        }
-    val etag = response.headers["ETag"]
-    return when (response.status) {
-        HttpStatusCode.NotModified ->
-            ContributorsNetworkResult(
-                status = response.status,
-                body = null,
-                etag = cachedEtag ?: etag,
-            )
-
-        else ->
-            ContributorsNetworkResult(
-                status = response.status,
-                body = response.bodyAsText(),
-                etag = etag,
-            )
-    }
-}
-
-@Composable
-fun OutlinedIconChip(
-    iconRes: Int,
-    text: String,
-    onClick: () -> Unit
-) {
-    OutlinedButton(
-        onClick = onClick,
-        shape = CircleShape,
-        contentPadding = PaddingValues(
-            horizontal = 12.dp,
-            vertical = 6.dp
-        )
-    ) {
-        Icon(
-            painter = painterResource(id = iconRes),
-            contentDescription = text,
-            modifier = Modifier.size(18.dp)
-        )
-        Spacer(Modifier.width(6.dp))
-        Text(text = text, style = MaterialTheme.typography.labelLarge)
-    }
-}
-
-@Composable
-fun OutlinedIconChipMembers(
-    iconRes: Int,
-    contentDescription: String?,
-    onClick: () -> Unit
-) {
-    OutlinedButton(
-        onClick = onClick,
-        shape = CircleShape,
-        contentPadding = PaddingValues(6.dp),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        colors = ButtonDefaults.outlinedButtonColors(
-            containerColor = Color.Transparent,
-            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-        ),
-        modifier = Modifier.size(32.dp)
-    ) {
-        Icon(
-            painter = painterResource(id = iconRes),
-            contentDescription = contentDescription,
-            modifier = Modifier.size(18.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
+import java.text.DateFormat
+import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -228,107 +46,6 @@ fun AboutScreen(
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
-    val httpClient = remember { HttpClient() }
-    DisposableEffect(Unit) {
-        onDispose { httpClient.close() }
-    }
-    var contributorsState by remember { mutableStateOf<ContributorsState>(ContributorsState.Loading) }
-    LaunchedEffect(Unit) {
-        val cachedJson = context.dataStore.getAsync(GitHubContributorsJsonKey)
-        val cachedEtag = context.dataStore.getAsync(GitHubContributorsEtagKey)
-        val lastCheckedAt = context.dataStore.getAsync(GitHubContributorsLastCheckedAtKey, 0L)
-        val now = System.currentTimeMillis()
-
-        val cachedContributors =
-            cachedJson
-                ?.takeIf { it.isNotBlank() }
-                ?.let { runCatching { parseContributorsJson(it) }.getOrNull() }
-
-        if (!cachedContributors.isNullOrEmpty()) {
-            contributorsState = ContributorsState.Loaded(cachedContributors)
-        }
-
-        val shouldCheckNetwork =
-            cachedJson.isNullOrBlank() || (now - lastCheckedAt) >= ContributorsCacheCheckIntervalMs
-
-        if (!shouldCheckNetwork) {
-            if (cachedContributors.isNullOrEmpty()) contributorsState = ContributorsState.Error
-            return@LaunchedEffect
-        }
-
-        val networkResult =
-            runCatching {
-                fetchRepoContributorsNetwork(
-                    client = httpClient,
-                    owner = "nikhilvishwakarma00",
-                    repo = "Velune",
-                    cachedEtag = cachedEtag,
-                )
-            }.getOrNull()
-
-        if (networkResult == null) {
-            if (cachedContributors.isNullOrEmpty()) contributorsState = ContributorsState.Error
-            return@LaunchedEffect
-        }
-
-        com.nikhil.yt.utils.PreferenceStore.launchEdit(context.dataStore) {
-            this[GitHubContributorsLastCheckedAtKey] = now
-            networkResult.etag?.let { this[GitHubContributorsEtagKey] = it }
-            networkResult.body?.let { this[GitHubContributorsJsonKey] = it }
-        }
-
-        when {
-            networkResult.status == HttpStatusCode.NotModified -> {
-                if (cachedContributors.isNullOrEmpty()) {
-                    contributorsState = ContributorsState.Error
-                }
-            }
-
-            (networkResult.status.value in 200..299) && !networkResult.body.isNullOrBlank() -> {
-                val contributors = runCatching { parseContributorsJson(networkResult.body) }.getOrNull()
-                if (!contributors.isNullOrEmpty()) {
-                    contributorsState = ContributorsState.Loaded(contributors)
-                } else if (cachedContributors.isNullOrEmpty()) {
-                    contributorsState = ContributorsState.Error
-                }
-            }
-
-            else -> {
-                if (cachedContributors.isNullOrEmpty()) contributorsState = ContributorsState.Error
-            }
-        }
-    }
-
-    val leadDeveloper = TeamMember(
-        avatarUrl = "https://github.com/nikhilvishwakarma00.png",
-        name = "Nikhil",
-        position = "Solo Developer",
-        profileUrl = "https://github.com/nikhilvishwakarma00",
-        github = "https://github.com/nikhilvishwakarma00",
-        website = null,
-        discord = null
-    )
-
-    val collaborators = listOf(
-        TeamMember(
-            avatarUrl = "https://avatars.githubusercontent.com/u/93458424?v=4",
-            name = "WTTexe",
-            position = "Word Synced Lyrics, Gradients and UI Changes for the better!",
-            profileUrl = "https://github.com/Windowstechtips",
-            github = "https://github.com/Windowstechtips",
-            website = null,
-            discord = "https://discord.com/users/840839409640800258"
-        ),
-        TeamMember(
-            avatarUrl = "https://avatars.githubusercontent.com/u/80542861?v=4",
-            name = "MO AGAMY",
-            position = "Metrolist Dev",
-            profileUrl = "https://github.com/mostafaalagamy",
-            github = "https://github.com/mostafaalagamy",
-            website = null,
-            discord = null
-        ),
-    )
 
     Scaffold(
         topBar = {
@@ -345,488 +62,237 @@ fun AboutScreen(
                         )
                     }
                 },
-                scrollBehavior = scrollBehavior
+                scrollBehavior = scrollBehavior,
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
-                .nestedScroll(scrollBehavior.nestedScrollConnection)
-                .verticalScroll(rememberScrollState())
-                .fillMaxWidth()
+                .fillMaxSize()
                 .padding(innerPadding)
+                .padding(horizontal = 16.dp)
                 .windowInsetsPadding(
                     LocalPlayerAwareWindowInsets.current.only(
                         WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
                     )
                 ),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-
-            Spacer(
-                Modifier
-                    .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top))
-                    .heightIn(max = 16.dp)
-            )
-
-            Image(
-                painter = painterResource(R.drawable.about_splash),
-                contentDescription = null,
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceContainer)
-                    .clickable { },
-            )
-
-            Row(
-                verticalAlignment = Alignment.Top,
-            ) {
-                Text(
-                    text = "Velune",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
-                )
-            }
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = BuildConfig.VERSION_NAME,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.secondary,
-                    modifier = Modifier
-                        .border(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.secondary,
-                            shape = CircleShape,
-                        )
-                        .padding(
-                            horizontal = 6.dp,
-                            vertical = 2.dp,
-                        ),
-                )
-
-                Spacer(Modifier.width(4.dp))
-
-                if (BuildConfig.DEBUG) {
-                    Spacer(Modifier.width(4.dp))
-
-                    Text(
-                        text = "DEBUG",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.secondary,
-                        modifier = Modifier
-                            .border(
-                                width = 1.dp,
-                                color = MaterialTheme.colorScheme.secondary,
-                                shape = CircleShape,
-                            )
-                            .padding(
-                                horizontal = 6.dp,
-                                vertical = 2.dp,
-                            ),
-                    )
-                } else {
-                    Spacer(Modifier.width(4.dp))
-
-                    Text(
-                        text = BuildConfig.ARCHITECTURE.uppercase(),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.secondary,
-                        modifier = Modifier
-                            .border(
-                                width = 1.dp,
-                                color = MaterialTheme.colorScheme.secondary,
-                                shape = CircleShape,
-                            )
-                            .padding(
-                                horizontal = 6.dp,
-                                vertical = 2.dp,
-                            ),
-                    )
-                }
-            }
-
-
-
-            Spacer(Modifier.height(16.dp))
-
-            SectionHeader(
-                title = "Lead Developer",
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-
-            Spacer(Modifier.height(8.dp))
-
-            LeadDeveloperCard(
-                member = leadDeveloper,
-                onOpenUri = uriHandler::openUri,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-            )
-
-            Spacer(Modifier.height(24.dp))
-
-            SectionHeader(
-                title = "Inspired From",
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-
-            Spacer(Modifier.height(8.dp))
-
-            Column(
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-            ) {
-                CollaboratorCard(
-                    member = TeamMember(
-                        avatarUrl = "https://avatars.githubusercontent.com/u/80542861?v=4",
-                        name = "Metrolist",
-                        position = "by MO AGAMY",
-                        profileUrl = "https://github.com/mostafaalagamy/Metrolist",
-                        github = "https://github.com/mostafaalagamy/Metrolist",
-                        website = null,
-                        discord = null
-                    ),
-                    onOpenUri = uriHandler::openUri,
-                )
-            }
-
-            Spacer(Modifier.height(24.dp))
-
-            SectionHeader(
-                title = "Contributors",
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-
-            Spacer(Modifier.height(8.dp))
-
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-                shape = RoundedCornerShape(20.dp)
-            ) {
+            item {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(14.dp),
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.3f))
+                        .padding(vertical = 32.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    ContributorGrid(
-                        state = contributorsState,
-                        onOpenProfile = uriHandler::openUri,
-                        modifier = Modifier.fillMaxWidth(),
+                    // Title
+                    Text(
+                        text = "VELUNE",
+                        style = MaterialTheme.typography.displaySmall,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 2.sp,
                     )
-                }
-            }
 
-            Spacer(Modifier.height(24.dp))
-        }
-    }
-}
+                    Spacer(Modifier.height(16.dp))
 
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun ContributorGrid(
-    state: ContributorsState,
-    onOpenProfile: (String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val contributors = when (state) {
-        ContributorsState.Loading -> null
-        ContributorsState.Error -> emptyList()
-        is ContributorsState.Loaded -> state.contributors.take(20)
-    }
-
-    val columns = 4
-    val spacing = 10.dp
-    BoxWithConstraints(modifier = modifier) {
-        val itemWidth = (maxWidth - spacing * (columns - 1)) / columns
-        val tileShape = RoundedCornerShape(22.dp)
-        val tileColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
-
-        FlowRow(
-            maxItemsInEachRow = columns,
-            horizontalArrangement = Arrangement.spacedBy(spacing, Alignment.CenterHorizontally),
-            verticalArrangement = Arrangement.spacedBy(spacing),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            if (contributors == null) {
-                repeat(6) {
-                    Surface(
-                        shape = tileShape,
-                        color = tileColor,
-                        modifier = Modifier.width(itemWidth)
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 14.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-                            )
-                            Spacer(Modifier.height(10.dp))
-                            Box(
-                                modifier = Modifier
-                                    .height(14.dp)
-                                    .fillMaxWidth(0.7f)
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-                            )
-                        }
-                    }
-                }
-            } else {
-                contributors.forEach { contributor ->
-                    Surface(
-                        shape = tileShape,
-                        color = tileColor,
+                    // Version Badge
+                    Row(
                         modifier = Modifier
-                            .width(itemWidth)
-                            .clickable(enabled = contributor.profileUrl.isNotBlank()) {
-                                if (contributor.profileUrl.isNotBlank()) {
-                                    onOpenProfile(contributor.profileUrl)
-                                }
-                            }
+                            .border(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.outlineVariant,
+                                shape = CircleShape
+                            )
+                            .padding(horizontal = 16.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 14.dp, horizontal = 10.dp)
-                        ) {
-                            AsyncImage(
-                                model = contributor.avatarUrl,
-                                contentDescription = contributor.login,
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-                            )
-                            Spacer(Modifier.height(10.dp))
-                            Text(
-                                text = contributor.login,
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
+                        Icon(
+                            painter = painterResource(R.drawable.info),
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = "v${BuildConfig.VERSION_NAME} • ${if (BuildConfig.DEBUG) "DEBUG" else "STABLE"}",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.SemiBold
+                        )
                     }
                 }
+
+                Spacer(Modifier.height(24.dp))
+            }
+
+            // --- DEVELOPER SECTION ---
+            item {
+                SectionTitle("DEVELOPER")
+                Spacer(Modifier.height(8.dp))
+                AboutItemCard(
+                    iconUrl = "https://github.com/nikhilvishwakarma00.png",
+                    title = "Nikhil",
+                    subtitle = "App Developer",
+                    onClick = { uriHandler.openUri("https://github.com/nikhilvishwakarma00") }
+                )
+                Spacer(Modifier.height(24.dp))
+            }
+
+            // --- INSPIRATION SECTION ---
+            item {
+                SectionTitle("INSPIRATION")
+                Spacer(Modifier.height(8.dp))
+                AboutItemCard(
+                    iconUrl = "https://avatars.githubusercontent.com/u/107134739?v=4", 
+                    title = "Archivetune   -by koiverse",
+                    subtitle = "Base Framework",
+                    onClick = { uriHandler.openUri("https://github.com/koiverse/ArchiveTune") }
+                )
+                Spacer(Modifier.height(8.dp))
+                AboutItemCard(
+                    iconUrl = "https://avatars.githubusercontent.com/u/80542861?v=4",
+                    title = "MO AGAMY",
+                    subtitle = "Metrolist Dev",
+                    onClick = { uriHandler.openUri("https://github.com/mostafaalagamy") }
+                )
+                Spacer(Modifier.height(24.dp))
+            }
+
+            // --- COMMUNITY SECTION ---
+            item {
+                SectionTitle("COMMUNITY")
+                Spacer(Modifier.height(8.dp))
+                AboutItemCard(
+                    iconRes = R.drawable.github,
+                    title = "GitHub Repository",
+                    subtitle = "View source code",
+                    onClick = { uriHandler.openUri("https://github.com/nikhilvishwakarma00/Velune") }
+                )
+                Spacer(Modifier.height(24.dp))
+            }
+
+            // --- APP INFO SECTION ---
+            item {
+                SectionTitle("APP INFO")
+                Spacer(Modifier.height(8.dp))
+                val installDate = try {
+                    val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+                    DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(packageInfo.firstInstallTime))
+                } catch (e: Exception) {
+                    "Unknown"
+                }
+
+                AboutItemCard(
+                    iconRes = R.drawable.storage,
+                    title = "Installed Date",
+                    subtitle = installDate,
+                    onClick = null
+                )
+                Spacer(Modifier.height(8.dp))
+                AboutItemCard(
+                    iconRes = R.drawable.info, 
+                    title = "Version code",
+                    subtitle = "${BuildConfig.VERSION_CODE}",
+                    onClick = null
+                )
+                Spacer(Modifier.height(8.dp))
+                AboutItemCard(
+                    iconRes = R.drawable.security, 
+                    title = "GNU General Public License v3.0",
+                    subtitle = "GPL-3.0 • Free Open Source Software",
+                    onClick = { uriHandler.openUri("https://www.gnu.org/licenses/gpl-3.0.html") }
+                )
+                
+                Spacer(Modifier.height(32.dp))
             }
         }
     }
 }
 
 @Composable
-private fun SectionHeader(
-    title: String,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.primary,
-        )
-        Spacer(Modifier.width(12.dp))
-        HorizontalDivider(
-            modifier = Modifier.weight(1f),
-            color = MaterialTheme.colorScheme.outlineVariant,
-        )
-    }
-}
-
-@Composable
-private fun LeadDeveloperCard(
-    member: TeamMember,
-    onOpenUri: (String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Card(
-        modifier = modifier,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        shape = RoundedCornerShape(24.dp),
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            AsyncImage(
-                model = member.avatarUrl,
-                contentDescription = member.name,
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(CircleShape)
-                    .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.primary,
-                        shape = CircleShape
-                    )
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-            )
-
-            Spacer(Modifier.height(12.dp))
-
-            Text(
-                text = member.name,
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-
-            Spacer(Modifier.height(4.dp))
-
-            Text(
-                text = member.position,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.secondary,
-            )
-
-            Spacer(Modifier.height(12.dp))
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                member.github?.let { url ->
-                    OutlinedIconChip(
-                        iconRes = R.drawable.github,
-                        text = "GitHub",
-                        onClick = { onOpenUri(url) },
-                    )
-                }
-
-                member.website?.takeIf { it.isNotBlank() }?.let { url ->
-                    OutlinedIconChip(
-                        iconRes = R.drawable.website,
-                        text = "Website",
-                        onClick = { onOpenUri(url) },
-                    )
-                }
-
-                member.discord?.let { url ->
-                    OutlinedIconChip(
-                        iconRes = R.drawable.alternate_email,
-                        text = "Discord",
-                        onClick = { onOpenUri(url) },
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun CollaboratorCard(
-    member: TeamMember,
-    onOpenUri: (String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Card(
-        modifier = modifier
+fun SectionTitle(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.labelSmall,
+        color = Color(0xFFB0956E),
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier
             .fillMaxWidth()
-            .clickable(enabled = member.profileUrl != null) {
-                member.profileUrl?.let { onOpenUri(it) }
-            },
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        shape = RoundedCornerShape(20.dp),
+            .padding(horizontal = 4.dp),
+        letterSpacing = 1.sp
+    )
+}
+
+@Composable
+fun AboutItemCard(
+    iconUrl: String? = null,
+    iconRes: Int? = null,
+    title: String,
+    subtitle: String,
+    onClick: (() -> Unit)?
+) {
+    val modifier = if (onClick != null) {
+        Modifier.clickable(onClick = onClick)
+    } else {
+        Modifier
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(modifier)
+            .padding(vertical = 12.dp, horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
+        if (iconUrl != null) {
             AsyncImage(
-                model = member.avatarUrl,
-                contentDescription = member.name,
+                model = iconUrl,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(40.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             )
-
-            Spacer(Modifier.width(12.dp))
-
-            Column(
-                modifier = Modifier.weight(1f),
+        } else if (iconRes != null) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.5f)),
+                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = member.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-
-                Spacer(Modifier.height(2.dp))
-
-                Text(
-                    text = member.position,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.secondary,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
+                Icon(
+                    painter = painterResource(id = iconRes),
+                    contentDescription = null,
+                    modifier = Modifier.size(22.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+        }
 
-            Spacer(Modifier.width(8.dp))
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                member.github?.let { url ->
-                    OutlinedIconChipMembers(
-                        iconRes = R.drawable.github,
-                        contentDescription = "GitHub",
-                        onClick = { onOpenUri(url) },
-                    )
-                }
-
-                member.website?.takeIf { it.isNotBlank() }?.let { url ->
-                    OutlinedIconChipMembers(
-                        iconRes = R.drawable.website,
-                        contentDescription = "Website",
-                        onClick = { onOpenUri(url) },
-                    )
-                }
-
-                member.discord?.let { url ->
-                    OutlinedIconChipMembers(
-                        iconRes = R.drawable.alternate_email,
-                        contentDescription = "Discord",
-                        onClick = { onOpenUri(url) },
-                    )
-                }
-            }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Normal,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(Modifier.height(2.dp))
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }

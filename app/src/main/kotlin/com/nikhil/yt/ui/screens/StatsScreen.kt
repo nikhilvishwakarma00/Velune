@@ -8,7 +8,11 @@
 
 package com.nikhil.yt.ui.screens
 
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -90,7 +94,11 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.zIndex
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -98,6 +106,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import coil3.compose.AsyncImage
+import com.nikhil.yt.constants.AppBarHeight
 import com.nikhil.yt.db.entities.Artist
 import com.nikhil.yt.db.entities.Song
 import com.nikhil.yt.db.entities.SongWithStats
@@ -213,9 +222,11 @@ fun StatsScreen(
     val color3 = MaterialTheme.colorScheme.tertiary
     val color4 = MaterialTheme.colorScheme.primaryContainer
     val color5 = MaterialTheme.colorScheme.secondaryContainer
-    val surfaceColor = MaterialTheme.colorScheme.surface
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    val surfaceColor = MaterialTheme.colorScheme.surface
+    Box(modifier = Modifier
+        .fillMaxSize()
+    ) {
         if (!disableBlur) {
             Box(
                 modifier = Modifier
@@ -310,14 +321,11 @@ fun StatsScreen(
                     }
             )
         }
+
         LazyColumn(
             state = lazyListState,
-            contentPadding = LocalPlayerAwareWindowInsets.current
-                .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
-                .asPaddingValues(),
-            modifier = Modifier.windowInsetsPadding(
-                LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top)
-            )
+            contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
+            modifier = Modifier
         ) {
             item {
                 ChoiceChipsRow(
@@ -584,36 +592,6 @@ fun StatsScreen(
                 }
             )
         }
-
-        TopAppBar(
-            title = { Text(stringResource(R.string.stats)) },
-            navigationIcon = {
-                IconButton(
-                    onClick = navController::navigateUp,
-                    onLongClick = navController::backToMain,
-                ) {
-                    Icon(
-                        painterResource(R.drawable.arrow_back),
-                        contentDescription = null,
-                    )
-                }
-            },
-            actions = {
-                IconButton(
-                    onClick = { navController.navigate("year_in_music") },
-                    onLongClick = { }
-                ) {
-                    Icon(
-                        painterResource(R.drawable.calendar_today),
-                        contentDescription = stringResource(R.string.year_in_music),
-                    )
-                }
-            },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color.Transparent,
-                scrolledContainerColor = Color.Transparent
-            )
-        )
     }
 }
 

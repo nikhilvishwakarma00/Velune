@@ -188,7 +188,7 @@ fun CurrentSongHeader(
             ) {
                 Icon(
                     painter = painterResource(if (locked) R.drawable.lock else R.drawable.lock_open),
-                    contentDescription = null,
+                    contentDescription = if (locked) "Unlock mode" else "Lock mode",
                     tint = onBackgroundColor,
                     modifier = Modifier.size(24.dp)
                 )
@@ -201,7 +201,7 @@ fun CurrentSongHeader(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.more_vert),
-                    contentDescription = null,
+                    contentDescription = "Options",
                     tint = onBackgroundColor,
                     modifier = Modifier.size(24.dp)
                 )
@@ -258,7 +258,7 @@ fun CurrentSongHeader(
                             else -> R.drawable.repeat
                         }
                     ),
-                    contentDescription = null,
+                    contentDescription = "Toggle repeat",
                     tint = onBackgroundColor,
                     modifier = Modifier.size(22.dp)
                 )
@@ -556,7 +556,7 @@ fun QueueCollapsedContentV2(
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.queue_music),
-                    contentDescription = null,
+                    contentDescription = "Queue",
                     modifier = Modifier.size(iconSize),
                     tint = textBackgroundColor
                 )
@@ -590,7 +590,7 @@ fun QueueCollapsedContentV2(
                     } else {
                         Icon(
                             painter = painterResource(id = R.drawable.bedtime),
-                            contentDescription = null,
+                            contentDescription = "Sleep timer",
                             modifier = Modifier.size(iconSize),
                             tint = textBackgroundColor
                         )
@@ -609,7 +609,7 @@ fun QueueCollapsedContentV2(
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.lyrics),
-                    contentDescription = null,
+                    contentDescription = "Lyrics",
                     modifier = Modifier.size(iconSize),
                     tint = textBackgroundColor
                 )
@@ -648,7 +648,7 @@ fun QueueCollapsedContentV2(
                             else -> R.drawable.repeat
                         }
                     ),
-                    contentDescription = null,
+                    contentDescription = "Toggle repeat",
                     modifier = Modifier
                         .size(iconSize)
                         .alpha(if (repeatMode == Player.REPEAT_MODE_OFF) 0.5f else 1f),
@@ -669,7 +669,7 @@ fun QueueCollapsedContentV2(
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.more_vert),
-                    contentDescription = null,
+                    contentDescription = "Options",
                     modifier = Modifier.size(iconSize),
                     tint = iconButtonColor
                 )
@@ -768,7 +768,7 @@ fun QueueCollapsedContentV3(
                     } else {
                         Icon(
                             painter = painterResource(id = R.drawable.bedtime),
-                            contentDescription = null,
+                            contentDescription = "Sleep timer",
                             modifier = Modifier.size(18.dp),
                             tint = textBackgroundColor.copy(alpha = 0.7f)
                         )
@@ -813,7 +813,7 @@ fun QueueCollapsedContentV3(
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.more_vert),
-                    contentDescription = null,
+                    contentDescription = "Options",
                     modifier = Modifier.size(18.dp),
                     tint = textBackgroundColor.copy(alpha = 0.7f)
                 )
@@ -1077,7 +1077,7 @@ fun QueueCollapsedContentV4(
                     } else {
                         Icon(
                             painter = painterResource(id = R.drawable.bedtime),
-                            contentDescription = null,
+                            contentDescription = "Sleep timer",
                             modifier = Modifier.size(iconSize),
                             tint = textBackgroundColor
                         )
