@@ -43,7 +43,7 @@
     <string name="most_played_artists">Artistes les plus écoutés</string>
     <string name="most_played_albums">Albums les plus écoutés</string>
     <!-- Search -->
-    <string name="search">Search</string>
+    <string name="search">Rechercher</string>
     <string name="search_yt_music">Rechercher sur YouTube Music…</string>
     <string name="search_library">Rechercher dans la bibliothèque…</string>
     <string name="filter_library">Bibliothèque</string>
@@ -65,7 +65,7 @@
     <string name="library_song_empty">Les titres de la bibliothèque s\'afficheront ici</string>
     <string name="library_artist_empty">Les artistes de la bibliothèque s\'afficheront ici</string>
     <string name="library_album_empty">Les albums de la bibliothèque s\'afficheront ici</string>
-    <string name="library_playlist_empty">Your playlists will show up here</string>
+    <string name="library_playlist_empty">Vos playlists s\'afficheront ici</string>
     <!-- Artist screen -->
     <string name="from_your_library">Depuis votre bibliothèque</string>
     <!-- Album screen -->
@@ -119,7 +119,7 @@
     <string name="together_ban">Ban</string>
     <string name="together_kick_confirm">Kick %1$s?</string>
     <string name="together_ban_confirm">Ban %1$s?</string>
-    <string name="together_requesting_song_change">Requesting host to change the song\u2026</string>
+    <string name="together_requesting_song_change">Demande à l\'animateur de changer de morceau\u2026</string>
     <string name="together_song_change_failed">Song change not applied. Please try again.</string>
     <string name="remove_from_history">Supprimer de l\'historique</string>
     <string name="remove_from_playlist">Supprimer de la playlist</string>
@@ -139,15 +139,15 @@
     <string name="sort_by_year">Année</string>
     <string name="sort_by_song_count">Nombre de titres</string>
     <string name="sort_by_length">Durée</string>
-    <string name="sort_by_play_time">Play time</string>
-    <string name="sort_by_custom">Custom order</string>
+    <string name="sort_by_play_time">Temps d\'écoute</string>
+    <string name="sort_by_custom">Ordre personnalisé</string>
     <!-- Dialog -->
     <string name="media_id">Identifiant du média</string>
     <string name="mime_type">Type MIME</string>
     <string name="codecs">Codecs</string>
     <string name="bitrate">Débit binaire</string>
     <string name="sample_rate">Fréquence d\'échantillonnage</string>
-    <string name="loudness">Loudness</string>
+    <string name="loudness">Intensité</string>
     <string name="volume">Volume</string>
     <string name="file_size">Taille du fichier</string>
     <string name="unknown">Inconnu</string>
