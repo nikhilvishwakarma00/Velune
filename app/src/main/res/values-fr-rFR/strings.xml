@@ -160,7 +160,7 @@
     <string name="error_song_title_empty">Le titre du morceau ne peut pas être vide.</string>
     <string name="error_song_artist_empty">Le champ « Interprète » ne peut pas être vide.</string>
     <string name="save">Enregistrer</string>
-    <string name="choose_playlist">Choose playlist</string>
+    <string name="choose_playlist">Choisissez une playlist</string>
     <string name="edit_playlist">Modifier la playlist</string>
     <string name="create_playlist">Créer une playlist</string>
     <string name="playlist_name">Nom de la playlist</string>
@@ -213,7 +213,7 @@
     <string name="undo">Annuler</string>
     <!-- Player -->
     <string name="lyrics_not_found">Paroles introuvables</string>
-    <string name="sleep_timer">Sleep timer</string>
+    <string name="sleep_timer">Minuterie de mise en veille</string>
     <string name="end_of_song">Fin du titre</string>
     <plurals name="minute">
         <item quantity="one">1 minute</item>
@@ -255,13 +255,13 @@
     <string name="selected_theme_color">Couleur du thème sélectionnée</string>
     <string name="theme_preview">Aperçu du thème</string>
     <string name="select_palette">Choisissez une palette de couleurs</string>
-    <string name="palette_applied">Palette applied</string>
+    <string name="palette_applied">Palette appliquée</string>
     <!-- Palette Names -->
     <string name="palette_default">Par défaut</string>
     <!-- Blues -->
-    <string name="palette_ocean_blue">Ocean Blue</string>
+    <string name="palette_ocean_blue">Bleu océan</string>
     <string name="palette_arctic_blue">Arctique</string>
-    <string name="palette_midnight_navy">Midnight</string>
+    <string name="palette_midnight_navy">Bleu nuit</string>
     <string name="palette_sky_blue">Bleu ciel</string>
     <string name="palette_cobalt_blue">Cobalt</string>
     <string name="palette_electric_blue">Électrique</string>
@@ -291,15 +291,15 @@
     <string name="palette_cherry_blossom">Sakura</string>
     <string name="palette_rose_quartz">Rose Quartz</string>
     <string name="palette_magenta_pop">Magenta</string>
-    <string name="palette_hot_pink">Hot Pink</string>
+    <string name="palette_hot_pink">Rose vif</string>
     <string name="palette_blush">Blush</string>
-    <string name="palette_coral">Coral</string>
+    <string name="palette_coral">Corail</string>
     <string name="palette_bubblegum">Chewing-gum</string>
     <!-- Reds -->
-    <string name="palette_crimson_red">Crimson</string>
+    <string name="palette_crimson_red">Cramoisi</string>
     <string name="palette_youtube_red">YouTube</string>
     <string name="palette_wine_red">Vin</string>
-    <string name="palette_ruby_red">Ruby</string>
+    <string name="palette_ruby_red">Rubis</string>
     <string name="palette_scarlet">Écarlate</string>
     <!-- Neutrals -->
     <string name="palette_charcoal">Charbon</string>
