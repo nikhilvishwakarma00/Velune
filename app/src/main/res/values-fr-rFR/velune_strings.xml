@@ -2,15 +2,15 @@
 <resources>
     <string name="explore">Explore</string>
     <string name="local_history">Local</string>
-    <string name="remote_history">Remote</string>
-    <string name="charts">Charts</string>
-    <string name="back_button_desc">Back</string>
-    <string name="no_title">No title</string>
-    <string name="unknown_artist">Unknown artist</string>
-    <string name="unknown_item_type">Unknown item type</string>
-    <string name="loading_charts">Loading charts...</string>
-    <string name="retry_button">Retry</string>
-    <string name="album_cover_desc">Album cover</string>
+    <string name="remote_history">Distant</string>
+    <string name="charts">Classements</string>
+    <string name="back_button_desc">Retour</string>
+    <string name="no_title">Sans titre</string>
+    <string name="unknown_artist">Artiste inconnu</string>
+    <string name="unknown_item_type">Type d\'élément inconnu</string>
+    <string name="loading_charts">Chargement des classements...</string>
+    <string name="retry_button">Réessayer</string>
+    <string name="album_cover_desc">Pochette d\'album</string>
     <string name="top_music_videos">Top music videos</string>
     <string name="trending">Trending</string>
     <string name="weeks">Weeks</string>
@@ -27,7 +27,7 @@
     <string name="allows_for_sync_witch_youtube">Remarque : cela permet la synchronisation avec YouTube Music. Ce paramètre ne peut PAS être modifié ultérieurement.</string>
     <string name="generating_image">Generating image</string>
     <string name="please_wait">Please wait</string>
-    <string name="cancel">Cancel</string>
+    <string name="cancel">Annuler</string>
     <string name="share_lyrics">Share lyrics</string>
     <string name="share_as_text">Share as text</string>
     <string name="share_as_image">Share as image</string>
