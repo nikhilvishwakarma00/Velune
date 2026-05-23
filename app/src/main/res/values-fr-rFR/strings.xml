@@ -382,7 +382,7 @@
     <string name="player">Lecteur</string>
     <string name="player_text_alignment">Alignement du texte du lecteur</string>
     <string name="lyrics_text_position">Position du texte des paroles</string>
-    <string name="sided">Sided</string>
+    <string name="sided">Côté</string>
     <string name="left">Gauche</string>
     <string name="center">Centre</string>
     <string name="right">Droite</string>
@@ -402,18 +402,18 @@
     <!-- Lyrics animation style -->
     <string name="lyrics_animation_style">Style d\'animation des paroles</string>
     <!-- Animation options -->
-    <string name="none">None</string>
+    <string name="none">Aucun</string>
     <string name="fade">Fade</string>
     <string name="slide">Slide</string>
     <string name="karaoke">Karaoké</string>
     <string name="apple_music_style">Apple Music</string>
     <!-- Lyrics line spacing -->
-    <string name="lyrics_line_spacing">Lyrics line spacing</string>
+    <string name="lyrics_line_spacing">Interligne des paroles</string>
     <string name="content">Contenu</string>
-    <string name="action_logout">Log out</string>
-    <string name="action_login">Log in</string>
-    <string name="login">Login</string>
-    <string name="not_logged_in">Not logged in</string>
+    <string name="action_logout">Se déconnecter</string>
+    <string name="action_login">Se connecter</string>
+    <string name="login">Connexion</string>
+    <string name="not_logged_in">Non connecté</string>
     <string name="login_failed">Échec de la connexion</string>
     <string name="content_language">Langue du contenu par défaut</string>
     <string name="content_country">Pays par défaut</string>
@@ -458,12 +458,12 @@
     <string name="equalizer">Égaliseur</string>
     <string name="eq_waiting_for_audio_session">En attente de la session audio…</string>
     <string name="eq_open_system_equalizer">Open system equalizer</string>
-    <string name="eq_presets">Presets</string>
-    <string name="eq_system">System</string>
-    <string name="eq_flat">Flat</string>
-    <string name="eq_profiles">Profiles</string>
-    <string name="eq_manage">Manage</string>
-    <string name="eq_system_preset">System preset</string>
+    <string name="eq_presets">Préréglages</string>
+    <string name="eq_system">Système</string>
+    <string name="eq_flat">Plat</string>
+    <string name="eq_profiles">Profils</string>
+    <string name="eq_manage">Gérer</string>
+    <string name="eq_system_preset">Réglage par défaut du système</string>
     <string name="eq_manual">Manual</string>
     <string name="eq_profile_hint">Apply a profile or save your current settings</string>
     <string name="eq_save">Save</string>
@@ -477,15 +477,15 @@
     <string name="eq_imported_profile">Imported</string>
     <string name="eq_import_success">Imported %1$d profiles</string>
     <string name="eq_bands">Bands</string>
-    <string name="eq_output_gain">Output gain</string>
-    <string name="eq_bass_boost">Bass boost</string>
-    <string name="eq_virtualizer">Virtualizer</string>
+    <string name="eq_output_gain">Gain de sortie</string>
+    <string name="eq_bass_boost">Amplification des basses</string>
+    <string name="eq_virtualizer">Virtualiseur</string>
     <string name="storage">Stockage</string>
     <string name="smart_trimmer">Smart Trimmer</string>
-    <string name="smart_trimmer_description">Smart trimmer dynamically manages the image cache and song cache, pruning old entries to save disk space.</string>
+    <string name="smart_trimmer_description">Smart Trimmer gère de manière dynamique le cache d\'images et le cache de morceaux, en supprimant les anciennes entrées afin de libérer de l\'espace disque.</string>
     <string name="cache">Cache</string>
-    <string name="image_cache">Image Cache</string>
-    <string name="song_cache">Song Cache</string>
+    <string name="image_cache">Cache d\'images</string>
+    <string name="song_cache">Cache de morceaux</string>
     <string name="max_cache_size">Taille maximale du cache</string>
     <string name="unlimited">Illimitée</string>
     <string name="clear_all_downloads">Effacer tous les téléchargements</string>
