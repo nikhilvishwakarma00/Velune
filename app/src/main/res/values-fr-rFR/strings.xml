@@ -561,16 +561,16 @@ Velune se contente d\'extraire votre jeton ; toutes les autres données sont sto
     <string name="small_image">Petite image</string>
     <string name="small_image_custom_url">URL personnalisée pour une petite image</string>
     <string name="activity_status">Activity Status</string>
-    <string name="platform_status">Platform</string>
-    <string name="update_interval">Presence Update Interval</string>
+    <string name="platform_status">Plateforme</string>
+    <string name="update_interval">Intervalle de mise à jour de la présence</string>
     <!--Discord Tranalstor Settings-->
-    <string name="translator_options">Translator Options</string>
-    <string name="enable_translator">Enable Translator</string>
-    <string name="enable_translator_desc">Translate selected fields before sending to Discord RPC</string>
+    <string name="translator_options">Options de traduction</string>
+    <string name="enable_translator">Activer le traducteur</string>
+    <string name="enable_translator_desc">Traduire les champs sélectionnés avant de les envoyer à l\'API RPC de Discord</string>
     <string name="context_info">Contexts (comma-separated)</string>
     <string name="translator_info_usage">Use Example: {song}, {artist}, {album}</string>
-    <string name="target_language">Target Language</string>
-    <string name="select_language">Select Language</string>
+    <string name="target_language">Langue cible</string>
+    <string name="select_language">Sélectionner la langue</string>
     <string name="close_dialog">Fermer</string>
     <string name="select_dialog">Sélectionner</string>
     <string name="support_github">Évaluez Velune !</string>
@@ -580,24 +580,24 @@ Velune se contente d\'extraire votre jeton ; toutes les autres données sont sto
     <string name="update_text">Mise à jour</string>
     <!-- Translate UI strings -->
     <string name="translate">Traduire</string>
-    <string name="language_label">Language</string>
-    <string name="lyrics">Lyrics</string>
-    <string name="translation_success">Translation saved</string>
-    <string name="translation_failed">Translation failed</string>
+    <string name="language_label">Langue</string>
+    <string name="lyrics">Paroles</string>
+    <string name="translation_success">Traduction enregistrée</string>
+    <string name="translation_failed">Échec de la traduction</string>
     <!-- Discord settings additions -->
-    <string name="discord_button_options">Button Options</string>
-    <string name="discord_image_options">Image Options</string>
+    <string name="discord_button_options">Options des boutons</string>
+    <string name="discord_image_options">Options d\'image</string>
     <string name="refresh">Refresh</string>
-    <string name="description_refresh">Manually refresh Discord Rich Presence</string>
-    <string name="discord_show_when_paused">Show RPC when paused</string>
-    <string name="discord_show_when_paused_desc">If enabled, Rich Presence will remain visible while paused with a pause icon. If disabled, RPC will disappear when paused.</string>
-    <string name="discord_paused">Paused</string>
-    <string name="show_small_image">Show small image</string>
-    <string name="description_show_small_image">When enabled, a small circular image is shown in the Rich Presence preview and sent to Discord if available</string>
-    <string name="logout_confirm_title">Confirm logout</string>
-    <string name="logout_confirm_message">Are you sure you want to log out of Discord?.</string>
-    <string name="logout_confirm_yes">Log out</string>
-    <string name="logout_confirm_no">Cancel</string>
+    <string name="description_refresh">Actualiser manuellement la présence enrichie de Discord</string>
+    <string name="discord_show_when_paused">Afficher le RPC en mode pause</string>
+    <string name="discord_show_when_paused_desc">Si cette option est activée, Rich Presence restera visible lorsqu\'il est en pause, accompagné d\'une icône de pause. Si cette option est désactivée, RPC disparaîtra lorsqu\'il est en pause.</string>
+    <string name="discord_paused">En pause</string>
+    <string name="show_small_image">Afficher la vignette</string>
+    <string name="description_show_small_image">Lorsque cette option est activée, une petite image circulaire s\'affiche dans l\'aperçu Rich Presence et est envoyée à Discord si elle est disponible</string>
+    <string name="logout_confirm_title">Confirmer la déconnexion</string>
+    <string name="logout_confirm_message">Êtes-vous sûr de vouloir vous déconnecter de Discord ?</string>
+    <string name="logout_confirm_yes">Déconnexion</string>
+    <string name="logout_confirm_no">Annuler</string>
     <!--Misc settings additions-->
     <string name="experiment_settings">Experimental Settings</string>
     <string name="show_discord_debug_ui">Show Debug UI</string>
@@ -608,10 +608,10 @@ Velune se contente d\'extraire votre jeton ; toutes les autres données sont sto
     <string name="experimental_features">Experimental Features</string>
     <string name="experimental_features_description">Advanced or experimental Discord options (moved to separate screen)</string>
     <string name="experimental_feature">Experimental Feature</string>
-    <string name="open">Open</string>
-    <string name="reset_to_default_levels">Reset to default</string>
-    <string name="no_logs">No Logs</string>
-    <string name="show_nerd_stats">Show nerd stats</string>
+    <string name="open">Ouvrir</string>
+    <string name="reset_to_default_levels">Réinitialiser les paramètres par défaut</string>
+    <string name="no_logs">Pas de journaux</string>
+    <string name="show_nerd_stats">Afficher les statistiques des geeks</string>
     <string name="description_show_nerd_stats">Display real-time playback statistics (codec, bitrate, buffer)</string>
     <string name="display_codec_on_player">Display Codec on Player</string>
     <string name="description_display_codec_on_player">Show current audio codec information on the player</string>
@@ -660,11 +660,11 @@ Velune se contente d\'extraire votre jeton ; toutes les autres données sont sto
     <string name="translation_models">Translation Models</string>
     <string name="clear_translation_models">Clear translation models</string>
     <string name="updates">Updates</string>
-    <string name="current_version">Current Version</string>
+    <string name="current_version">Version actuelle</string>
     <string name="latest_version_format">Latest: %s</string>
     <string name="notification_settings">Notification</string>
-    <string name="enable_update_notification">Enable Update Notification</string>
-    <string name="enable_update_notification_desc">Get notified when a new stable version is released</string>
+    <string name="enable_update_notification">Activer les notifications de mise à jour</string>
+    <string name="enable_update_notification_desc">Recevez une notification dès qu\'une nouvelle version stable est disponible</string>
     <string name="update_channel">Update Channel</string>
     <string name="channel_stable">Stable</string>
     <string name="channel_nightly">Nightly</string>
@@ -674,9 +674,9 @@ Velune se contente d\'extraire votre jeton ; toutes les autres données sont sto
     <string name="view_changelog">Consulter le journal des modifications</string>
     <string name="error_loading_changelog">Error loading changelog</string>
     <string name="no_releases">Aucune version disponible</string>
-    <string name="update_notification_channel_name">App Updates</string>
-    <string name="update_notification_channel_desc">Notifications for new app updates</string>
-    <string name="update_notification_title">Update Available</string>
+    <string name="update_notification_channel_name">Mises à jour de l\'application</string>
+    <string name="update_notification_channel_desc">Notifications concernant les nouvelles mises à jour de l\'application</string>
+    <string name="update_notification_title">Mise à jour disponible</string>
     <string name="update_notification_text">Velune %s est désormais disponible</string>
     <string name="download">Télécharger</string>
     <string name="permissions_title">Laissez Velune fonctionner de manière optimale</string>
@@ -689,7 +689,7 @@ Velune se contente d\'extraire votre jeton ; toutes les autres données sont sto
     <string name="permission_status_all_granted">Toutes les autorisations requises ont été accordées. Vous êtes prêt à commencer.</string>
     <string name="permission_status_required">Veuillez autoriser toutes les autorisations requises pour continuer.</string>
     <string name="next">Suivant</string>
-    <string name="next_song">Next Song</string>
+    <string name="next_song">Morceau suivant</string>
     <string name="allow">Autoriser</string>
     <!-- Playlist Suggestions -->
     <string name="you_might_like">Cela pourrait vous plaire</string>
