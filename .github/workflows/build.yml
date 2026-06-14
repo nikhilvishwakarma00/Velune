@@ -11,6 +11,10 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+      - name: Create gradle wrapper properties
+        run: |
+          mkdir -p gradle/wrapper
+          printf 'distributionBase=GRADLE_USER_HOME\ndistributionPath=wrapper/dists\ndistributionUrl=https\\://services.gradle.org/distributions/gradle-9.3.1-bin.zip\nzipStoreBase=GRADLE_USER_HOME\nzipStorePath=wrapper/dists\n' > gradle/wrapper/gradle-wrapper.properties
       - name: Make gradlew executable
         run: chmod +x gradlew
       - name: Build Debug APK
