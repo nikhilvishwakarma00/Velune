@@ -18,7 +18,9 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
       - name: Build Debug APK
-        run: ./gradlew assembleDebug -x extractArm64DebugSupportedLocales -x extractX86_64DebugSupportedLocales
+        run: ./gradlew assembleDebug -Pandroid.enableAppCompileTimeRClass=false --continue
+        env:
+          ANDROID_PER_APP_LANGUAGES: false
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
