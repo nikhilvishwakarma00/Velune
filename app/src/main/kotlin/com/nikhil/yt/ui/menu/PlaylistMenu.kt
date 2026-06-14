@@ -66,6 +66,7 @@ import com.nikhil.yt.ui.component.EditPlaylistDialog
 import com.nikhil.yt.ui.component.NewAction
 import com.nikhil.yt.ui.component.NewActionGrid
 import com.nikhil.yt.ui.component.PlaylistListItem
+import com.nikhil.yt.ui.menu.ExportPlaylistDialog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -206,6 +207,18 @@ fun PlaylistMenu(
 
     var showAssignTagsDialog by remember {
         mutableStateOf(false)
+    }
+
+    var showExportDialog by remember {
+        mutableStateOf(false)
+    }
+
+    if (showExportDialog) {
+        ExportPlaylistDialog(
+            playlist = playlist,
+            songIds = songs.map { it.id },
+            onDismiss = { showExportDialog = false },
+        )
     }
 
     if (showAssignTagsDialog) {
@@ -444,6 +457,23 @@ fun PlaylistMenu(
                     },
                     modifier = Modifier.clickable {
                         showEditDialog = true
+                    }
+                )
+            }
+        }
+
+        if (autoPlaylist != true) {
+            item {
+                ListItem(
+                    headlineContent = { Text(text = stringResource(R.string.export_playlist)) },
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.share),
+                            contentDescription = null,
+                        )
+                    },
+                    modifier = Modifier.clickable {
+                        showExportDialog = true
                     }
                 )
             }
