@@ -15,12 +15,12 @@ jobs:
         run: |
           mkdir -p gradle/wrapper
           printf 'distributionBase=GRADLE_USER_HOME\ndistributionPath=wrapper/dists\ndistributionUrl=https\\://services.gradle.org/distributions/gradle-9.3.1-bin.zip\nzipStoreBase=GRADLE_USER_HOME\nzipStorePath=wrapper/dists\n' > gradle/wrapper/gradle-wrapper.properties
+      - name: Create resources.properties
+        run: echo 'unqualifiedResLocale=en-US' > app/src/main/resources.properties
       - name: Make gradlew executable
         run: chmod +x gradlew
       - name: Build Debug APK
-        run: ./gradlew assembleDebug -Pandroid.enableAppCompileTimeRClass=false --continue
-        env:
-          ANDROID_PER_APP_LANGUAGES: false
+        run: ./gradlew assembleDebug
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
