@@ -3,11 +3,6 @@ on:
   push:
     branches: [ main ]
 jobs:
- - name: Make gradlew executable
-        run: chmod +x gradlew
-
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug
   build:
     runs-on: ubuntu-latest
     steps:
@@ -16,6 +11,8 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+      - name: Make gradlew executable
+        run: chmod +x gradlew
       - name: Build Debug APK
         run: ./gradlew assembleDebug
       - name: Upload APK
