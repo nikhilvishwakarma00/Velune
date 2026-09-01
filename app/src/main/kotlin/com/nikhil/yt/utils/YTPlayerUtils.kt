@@ -324,11 +324,10 @@ object YTPlayerUtils {
             format = selectedFormat
             streamUrl = selectedUrl
             streamExpiresInSeconds = streamPlayerResponse.streamingData?.expiresInSeconds
-
-            if (streamExpiresInSeconds == null) {
-                streamPlayerResponse = null
-                continue
-            }
+                ?: streamUrl.toHttpUrlOrNull()?.queryParameter("expire")?.toLongOrNull()?.let { expireEpoch ->
+                    val currentEpochSeconds = System.currentTimeMillis() / 1000
+                    (expireEpoch - currentEpochSeconds).toInt()
+                } ?: 21600 // fallback to 6 hours
 
             Timber.tag(logTag).i("Format found: ${format.mimeType}, bitrate: ${format.bitrate}")
             Timber.tag(logTag).v("Stream expires in: $streamExpiresInSeconds seconds")
@@ -369,11 +368,6 @@ object YTPlayerUtils {
             )
         }
 
-        if (streamExpiresInSeconds == null) {
-            Timber.tag(logTag).e("Missing stream expire time")
-            throw Exception("Missing stream expire time")
-        }
-
         if (format == null) {
             Timber.tag(logTag).e("Could not find suitable format for quality: $audioQuality. Available formats from last client: ${streamPlayerResponse.streamingData?.adaptiveFormats?.filter { it.isAudio }?.map { "${it.mimeType} @ ${it.bitrate}bps (itag: ${it.itag})" }}")
             throw Exception("Could not find format for quality: $audioQuality")
@@ -382,6 +376,11 @@ object YTPlayerUtils {
         if (streamUrl == null) {
             Timber.tag(logTag).e("Could not find stream url for format: ${format.mimeType}, itag: ${format.itag}")
             throw Exception("Could not find stream url")
+        }
+
+        if (streamExpiresInSeconds == null) {
+            Timber.tag(logTag).e("Missing stream expire time")
+            throw Exception("Missing stream expire time")
         }
 
         Timber.tag(logTag).i("Successfully obtained playback data with format: ${format.mimeType}, bitrate: ${format.bitrate}")
