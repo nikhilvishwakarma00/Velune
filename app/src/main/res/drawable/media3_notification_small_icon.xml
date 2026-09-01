@@ -1,13 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="512dp"
-    android:height="512dp"
-    android:viewportWidth="100"
-    android:viewportHeight="100">
-  <path
-      android:pathData="M25,35L50,75L75,35L55,20L48,30"
-      android:strokeLineJoin="round"
-      android:strokeWidth="14"
-      android:fillColor="#00000000"
-      android:strokeColor="#EAEAE0"
-      android:strokeLineCap="round"/>
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Outer Ring (YouTube Music style) -->
+    <path
+        android:pathData="M 54,54 m -44,0 a 44,44 0 1,1 88,0 a 44,44 0 1,1 -88,0"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round" />
+
+    <!-- Inner Ring (YouTube Music style) -->
+    <path
+        android:pathData="M 54,54 m -34,0 a 34,34 0 1,1 68,0 a 34,34 0 1,1 -68,0"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round" />
+
+    <!-- Equalizer Play Button (Deezer + YTM Hybrid) -->
+    <!-- Column 1 -->
+    <path
+        android:pathData="M 38,34 H 40 A 2,2 0 0,1 42,36 V 39 A 2,2 0 0,1 40,41 H 38 A 2,2 0 0,1 36,39 V 36 A 2,2 0 0,1 38,34 Z"
+        android:fillColor="#FFFFFF" />
+    <path
+        android:pathData="M 38,44 H 40 A 2,2 0 0,1 42,46 V 49 A 2,2 0 0,1 40,51 H 38 A 2,2 0 0,1 36,49 V 46 A 2,2 0 0,1 38,44 Z"
+        android:fillColor="#FFFFFF" />
+    <path
+        android:pathData="M 38,54 H 40 A 2,2 0 0,1 42,56 V 59 A 2,2 0 0,1 40,61 H 38 A 2,2 0 0,1 36,59 V 56 A 2,2 0 0,1 38,54 Z"
+        android:fillColor="#FFFFFF" />
+    <path
+        android:pathData="M 38,64 H 40 A 2,2 0 0,1 42,66 V 69 A 2,2 0 0,1 40,71 H 38 A 2,2 0 0,1 36,69 V 66 A 2,2 0 0,1 38,64 Z"
+        android:fillColor="#FFFFFF" />
+
+    <!-- Column 2 -->
+    <path
+        android:pathData="M 48,39 H 50 A 2,2 0 0,1 52,41 V 44 A 2,2 0 0,1 50,46 H 48 A 2,2 0 0,1 46,44 V 41 A 2,2 0 0,1 48,39 Z"
+        android:fillColor="#FFFFFF" />
+    <path
+        android:pathData="M 48,49 H 50 A 2,2 0 0,1 52,51 V 54 A 2,2 0 0,1 50,56 H 48 A 2,2 0 0,1 46,54 V 51 A 2,2 0 0,1 48,49 Z"
+        android:fillColor="#FFFFFF" />
+    <path
+        android:pathData="M 48,59 H 50 A 2,2 0 0,1 52,61 V 64 A 2,2 0 0,1 50,66 H 48 A 2,2 0 0,1 46,64 V 61 A 2,2 0 0,1 48,59 Z"
+        android:fillColor="#FFFFFF" />
+
+    <!-- Column 3 -->
+    <path
+        android:pathData="M 58,44 H 60 A 2,2 0 0,1 62,46 V 49 A 2,2 0 0,1 60,51 H 58 A 2,2 0 0,1 56,49 V 46 A 2,2 0 0,1 58,44 Z"
+        android:fillColor="#FFFFFF" />
+    <path
+        android:pathData="M 58,54 H 60 A 2,2 0 0,1 62,56 V 59 A 2,2 0 0,1 60,61 H 58 A 2,2 0 0,1 56,59 V 56 A 2,2 0 0,1 58,54 Z"
+        android:fillColor="#FFFFFF" />
+
+    <!-- Column 4 -->
+    <path
+        android:pathData="M 68,49 H 70 A 2,2 0 0,1 72,51 V 54 A 2,2 0 0,1 70,56 H 68 A 2,2 0 0,1 66,54 V 51 A 2,2 0 0,1 68,49 Z"
+        android:fillColor="#FFFFFF" />
+
+    <!-- OVERLAY: Morphine Syringe -->
+    <!-- Syringe Body -->
+    <path
+        android:pathData="M 66,42 L 46,62"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="6"
+        android:strokeLineCap="square" />
+    
+    <!-- Measurement lines -->
+    <path
+        android:pathData="M 58,46 L 56,48 M 55,49 L 53,51 M 52,52 L 50,54 M 49,55 L 47,57"
+        android:strokeColor="#000000"
+        android:strokeWidth="0.8" />
+
+    <!-- Plunger Shaft -->
+    <path
+        android:pathData="M 66,42 L 76,32"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2" />
+
+    <!-- Plunger Handle -->
+    <path
+        android:pathData="M 72.5,28.5 L 79.5,35.5"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round" />
+
+    <!-- Needle Adapter -->
+    <path
+        android:pathData="M 46,62 L 42,66"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round" />
+
+    <!-- Needle -->
+    <path
+        android:pathData="M 42,66 L 30,78"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1" />
+
+    <!-- Teardrop -->
+    <path
+        android:pathData="M 29,81 m -1.5,0 a 1.5,1.5 0 1,1 3,0 a 1.5,1.5 0 1,1 -3,0"
+        android:fillColor="#FFFFFF" />
+
 </vector>

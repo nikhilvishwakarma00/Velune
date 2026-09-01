@@ -355,6 +355,7 @@ class MusicService :
     lateinit var downloadCache: Cache
 
     lateinit var player: ExoPlayer
+    val amplitudeProcessor = AmplitudeAudioProcessor()
     private lateinit var mediaSession: MediaLibrarySession
 
     private var isAudioEffectSessionOpened = false
@@ -644,7 +645,7 @@ class MusicService :
 
         combine(
             currentMediaMetadata.distinctUntilChangedBy { it?.id },
-            dataStore.data.map { it[ShowLyricsKey] ?: false }.distinctUntilChanged(),
+            dataStore.data.map { it[ShowLyricsKey] ?: true }.distinctUntilChanged(),
         ) { mediaMetadata, showLyrics ->
             mediaMetadata to showLyrics
         }.collectLatest(ioScope) { (mediaMetadata, showLyrics) ->
@@ -652,13 +653,15 @@ class MusicService :
                     .first() == null
             ) {
                 val lyrics = lyricsHelper.getLyrics(mediaMetadata)
-                database.query {
-                    upsert(
-                        LyricsEntity(
-                            id = mediaMetadata.id,
-                            lyrics = lyrics,
-                        ),
-                    )
+                if (lyrics != LyricsEntity.LYRICS_NOT_FOUND) {
+                    database.query {
+                        upsert(
+                            LyricsEntity(
+                                id = mediaMetadata.id,
+                                lyrics = lyrics,
+                            ),
+                        )
+                    }
                 }
             }
         }
@@ -803,7 +806,7 @@ class MusicService :
         }
 
         dataStore.data
-            .map { it[DiscordTokenKey] to (it[EnableDiscordRPCKey] ?: true) }
+            .map { it[DiscordTokenKey] to false }
             .debounce(300)
             .distinctUntilChanged()
             .collectLatest(scope) { (key, enabled) ->
@@ -970,7 +973,7 @@ class MusicService :
         if (DiscordPresenceManager.isRunning() && lastPresenceToken != null) return
 
         scope.launch {
-            if (!dataStore.get(EnableDiscordRPCKey, true)) {
+            if (true) {
                 if (DiscordPresenceManager.isRunning()) {
                     Timber.tag("MusicService").d("Discord RPC disabled → stopping presence manager")
                     try { DiscordPresenceManager.stop() } catch (_: Exception) {}
@@ -1293,6 +1296,21 @@ class MusicService :
                     )
                     .setIconResId(if (currentSong.value?.song?.liked == true) R.drawable.favorite else R.drawable.favorite_border)
                     .setSessionCommand(CommandToggleLike)
+                    .setEnabled(currentSong.value != null)
+                    .build(),
+                CommandButton
+                    .Builder()
+                    .setDisplayName(
+                        getString(
+                            if (currentSong.value?.song?.inLibrary != null) {
+                                R.string.remove_from_library
+                            } else {
+                                R.string.add_to_library
+                            },
+                        ),
+                    )
+                    .setIconResId(if (currentSong.value?.song?.inLibrary != null) R.drawable.library_add_check else R.drawable.library_add)
+                    .setSessionCommand(com.nikhil.yt.constants.MediaSessionConstants.CommandToggleLibrary)
                     .setEnabled(currentSong.value != null)
                     .build(),
                 CommandButton
@@ -4291,6 +4309,7 @@ class MusicService :
                             150.toShort(),
                         ),
                         SonicAudioProcessor(),
+                        amplitudeProcessor,
                     ),
                 ).build()
         }
@@ -4730,6 +4749,8 @@ class MusicService :
         const val ARTIST = "artist"
         const val ALBUM = "album"
         const val PLAYLIST = "playlist"
+        const val RECENT = "recent"
+        const val QUEUE = "queue"
 
         const val CHANNEL_ID = "music_channel_01"
         const val NOTIFICATION_ID = 888

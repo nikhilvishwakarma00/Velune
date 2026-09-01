@@ -100,7 +100,7 @@ fun VeluneSettingsScreen(
                     Spacer(Modifier.width(16.dp))
                     Column {
                         Text(
-                            text = "Velune",
+                            text = "Velune Doped",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Normal
                         )

@@ -161,30 +161,31 @@ fun LyricsScreen(
     val (useLyricsV2) = rememberPreference(UseLyricsV2Key, defaultValue = false)
 
     // Auto-fetch lyrics when no lyrics found (same logic as refetch)
+    var isFetchingLyrics by remember { mutableStateOf(false) }
     LaunchedEffect(mediaMetadata.id, currentLyrics) {
-        if (currentLyrics == null) {
-            // Small delay to ensure database state is stable
+        if (currentLyrics == null && !isFetchingLyrics) {
+            isFetchingLyrics = true
             delay(500)
-            
-            coroutineScope.launch(Dispatchers.IO) {
-                try {
-                    // Get LyricsHelper from Hilt
-                    val entryPoint = EntryPointAccessors.fromApplication(
-                        context.applicationContext,
-                        com.nikhil.yt.di.LyricsHelperEntryPoint::class.java
-                    )
-                    val lyricsHelper = entryPoint.lyricsHelper()
-                    
-                    // Fetch lyrics automatically
-                    val lyrics = lyricsHelper.getLyrics(mediaMetadata)
-                    
-                    // Save to database
+
+            try {
+                val entryPoint = EntryPointAccessors.fromApplication(
+                    context.applicationContext,
+                    com.nikhil.yt.di.LyricsHelperEntryPoint::class.java
+                )
+                val lyricsHelper = entryPoint.lyricsHelper()
+
+                val lyrics = withContext(Dispatchers.IO) {
+                    lyricsHelper.getLyrics(mediaMetadata)
+                }
+
+                if (lyrics != com.nikhil.yt.db.entities.LyricsEntity.Companion.LYRICS_NOT_FOUND) {
                     database.query {
                         upsert(LyricsEntity(mediaMetadata.id, lyrics))
                     }
-                } catch (e: Exception) {
-                    // Handle error silently - user can manually refetch if needed
                 }
+            } catch (_: Exception) {
+            } finally {
+                isFetchingLyrics = false
             }
         }
     }

@@ -81,6 +81,10 @@ val ListenBrainzTokenKey = stringPreferencesKey("listenbrainz_token")
 val LastFMSessionKey = stringPreferencesKey("lastfmSession")
 val LastFMUsernameKey = stringPreferencesKey("lastfmUsername")
 val EnableLastFMScrobblingKey = booleanPreferencesKey("lastfmScrobblingEnable")
+val EnableDeezerKey = booleanPreferencesKey("enableDeezer")
+val DeezerArlKey = stringPreferencesKey("deezerArl")
+val DeezerQualityKey = stringPreferencesKey("deezerQuality")
+val DeezerProxyKey = stringPreferencesKey("deezerProxy")
 val LastFMUseNowPlaying = booleanPreferencesKey("lastfmUseNowPlaying")
 val ScrobbleDelayPercentKey = floatPreferencesKey("scrobbleDelayPercent")
 val ScrobbleMinSongDurationKey = intPreferencesKey("scrobbleMinSongDuration")
@@ -438,6 +442,7 @@ val PreloadQueueLyricsEnabledKey = booleanPreferencesKey("preload_queue_lyrics_e
 val QueueLyricsPreloadCountKey = intPreferencesKey("queue_lyrics_preload_count")
 
 val PlayerVolumeKey = floatPreferencesKey("playerVolume")
+val ShowVUMeterKey = booleanPreferencesKey("showVUMeter")
 val RepeatModeKey = intPreferencesKey("repeatMode")
 
 val SearchSourceKey = stringPreferencesKey("searchSource")
@@ -575,6 +580,7 @@ val GitHubReleasesFingerprintKey = stringPreferencesKey("github_releases_fingerp
 
 val TogetherOnlineEndpointCacheKey = stringPreferencesKey("together_online_endpoint_cache")
 val TogetherOnlineEndpointLastCheckedAtKey = longPreferencesKey("together_online_endpoint_last_checked_at")
+val SavedSpotifyPlaylistsKey = stringPreferencesKey("savedSpotifyPlaylists")
 
 enum class UpdateChannel {
     STABLE,

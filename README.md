@@ -1,11 +1,11 @@
 
 <div align="center">
 
- <img src="https://raw.githubusercontent.com/nikhilvishwakarma00/Velune/main/fastlane/metadata/android/en-US/images/icon.png" width="110" />
+ <img src="https://raw.githubusercontent.com/mich-de/Velune-doped/main/fastlane/metadata/android/en-US/images/icon.png" width="110" />
 
 </div>
 
-# 🌌 Velune
+# 💉 velune-doped
 <div align="center">
 
 <pre>
@@ -17,252 +17,99 @@
   ╚═══╝  ╚══════╝╚══════╝ ╚═════╝ ╚═╝  ╚═══╝╚══════╝
 </pre>
 
-</div>
+**Velune** — YouTube Music client • No Ads • No Subscription • Full Control
 
-### 🎧 The YouTube Music app you always wanted
-
-🚫 No Ads • 💰 No Subscription • ⚡ Full Control  
-
-<div align="center">
-
-![Release](https://img.shields.io/github/v/release/nikhilvishwakarma00/Velune?style=for-the-badge&logo=github&logoColor=white&labelColor=18181B&color=3B82F6)
-![Downloads](https://img.shields.io/github/downloads/nikhilvishwakarma00/Velune/total?style=for-the-badge&logo=github&logoColor=white&labelColor=18181B&color=10B981)
-![Stars](https://img.shields.io/github/stars/nikhilvishwakarma00/Velune?style=for-the-badge&logo=github&logoColor=white&labelColor=18181B&color=F59E0B)
-![License](https://img.shields.io/github/license/nikhilvishwakarma00/Velune?style=for-the-badge&labelColor=18181B&color=EF4444)
-
-<br>
-
-![Kotlin](https://img.shields.io/badge/Kotlin-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)
-![Jetpack Compose](https://img.shields.io/badge/Compose-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white)
-![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
-![Architecture](https://img.shields.io/badge/Architecture-MVVM-52525B?style=for-the-badge)
+<a href="#-android-auto-custom-ui">Android Auto</a> • <a href="#-deezer-downloader">Deezer</a> • <a href="#-whats-different">What's Different</a>
 
 </div>
-
-## 📥 Download Now
-
-
-<div align="center">
-
-<h2>Stable Release</h2>
-
-<table>
-  <thead>
-    <tr>
-      <th align="center">Obtainium</th>
-      <th align="center">IzzyOnDroid</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td align="center">
-        <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/nikhilvishwakarma00/Velune">
-          <img src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" height="50" alt="Get Velune on Obtainium">
-        </a>
-      </td>
-      <td align="center">
-        <a href="https://apt.izzysoft.de/fdroid/index/apk/com.nikhil.yt">
-          <img src="assets/IzzyOnDroidButtonBorder.svg" height="50" alt="Get Velune on IzzyOnDroid">
-        </a>
-      </td>
-    </tr>
-    <tr>
-      <th align="center" colspan="2">GitHub</th>
-    </tr>
-    <tr>
-      <td align="center" colspan="2">
-        <a href="https://github.com/nikhilvishwakarma00/Velune/releases/latest">
-          <img src="assets/badge_github.png" height="50" alt="Get Velune on GitHub">
-        </a>
-      </td>
-    </tr>
-  </tbody>
-</table>
-
-</div>
-
-
-## 🚀 Why Velune?
-
-Velune is not just another music player — it's a **complete reimagination of YouTube Music**.
-
-* ⚡ **Faster** than the official app
-* 🎵 Built for audiophiles & power users
-* 📦 True offline-first experience
-* 🎨 Stunning **Material You** interface
-
-> 💡 This is YouTube Music — *but unlocked*
 
 ---
 
-## 🎯 Highlight Feature
+## 🚗 Android Auto Custom UI
 
-### 🎤 Real-Time Synced Lyrics
+Template‑based Android Auto via `androidx.car.app:1.7.0`, optimized for 7‑inch horizontal screens.
 
-Experience lyrics like never before:
-
-- Word-by-word sync  
-- Smooth animations  
-- Translation support  
-- Fully immersive playback  
-
----
-
-## 📸 Preview
-
-<div align="center">
-
-<img src="screenshots/Home.png" width="140"/>
-<img src="screenshots/Now Playing.png" width="140"/>
-<img src="screenshots/History.png" width="140"/>
-<img src="screenshots/Stats.png" width="140"/>
-
-<br/>
-
-<img src="screenshots/Library.png" width="140"/>
-<img src="screenshots/Settings.png" width="140"/>
-<img src="screenshots/About.png" width="140"/>
-
-</div>
-
-
+| Feature | Description |
+|---------|-------------|
+| `CarAppService` + `VeluneSession` | Replaces AA's default UI with custom templates |
+| `ListTemplate` | Category browsing: Songs, Artists, Albums, Playlists, Liked Songs |
+| `SearchTemplate` | Voice search via Google Assistant |
+| 2‑tap playback | Liked Songs & Downloaded Songs accessible directly from root |
 
 ---
 
-## ✨ Features
+## 📥 Deezer Downloader
 
-### 🎵 Core Experience
-- Ad-Free Playback  
-- Full Library Sync  
-- Offline Caching (Encrypted)  
-- Background Playback  
+Download FLAC, MP3 320kbps, or MP3 128kbps directly from Deezer's CDN via ARL‑based auth — embedded ID3v2.3 tags, album art, saved to `Music/Deezer/`.
 
-### 🔊 Audio Engine
-- Gapless Playback  
-- Crossfade Engine  
-- Silence Skipping  
-- Loudness Normalization (EBU R128)  
-- Tempo & Pitch Control  
-- System EQ Integration  
+| Feature | Description |
+|---------|-------------|
+| **Quality Selector** | Choose between `MP3_128`, `MP3_320`, or `FLAC` in settings. Automatic fallback to lower quality if not supported by ARL account type. |
+| **Multiline ARL Input** | Multiline text area in integrations panel for comfortable pasting of 192/256-character tokens. |
+| Song context menu | `PlayerMenu.kt` — "Download from Deezer ($quality)" |
+| Player top bar | `PlayerComponents.kt` — download icon next to menu |
 
-### 🎨 UI & Discovery
-- Material You (Dynamic Colors)  
-- Synced Lyrics + Translation  
-- Discord Rich Presence  
-- Personalized Home Feed  
-- Year in Review Stats  
-- Custom Animated Loader  
+---
+
+## 💉 What's Different
+
+This fork adds **everything above** plus fixes and quality‑of‑life improvements:
+
+| Area | Change |
+|------|--------|
+| **Player scrolling** | Removed `userScrollEnabled = !isPortrait` — the player menu was unscrollable in portrait mode, hiding the Deezer button |
+| **Lyrics caching** | Never save `LYRICS_NOT_FOUND` to DB — avoids permanent "no lyrics" lock after transient network errors |
+| **Lyrics auto‑fetch** | `ShowLyricsKey` defaults to `true` — lyrics pre‑fetched on song change |
+| **Lyrics fetch lifecycle** | Fixed `rememberCoroutineScope().launch` leak inside `LaunchedEffect` — fetch is now properly scoped |
+| **CarAppService** | Full `ListTemplate` + `SearchTemplate` custom UI (V1) |
+| **AA content styles** | Root categories use `CONTENT_STYLE_LIST_ITEM` for 7‑inch compact display |
+| **Deezer module** | `:deezer` JVM module — file‑based logging, MediaStore save, StripeDecryptor |
+| **Kizzy Discord RPC** | Disabled by default (privacy / battery) |
+| **New Branding** | "Velune Doped" name, hybrid syringe/equalizer launcher and monochrome status bar/notification icons |
+| **Gradle Builds** | Output APKs are automatically named with `Velune_Doped_v<version>` base name |
+
+---
+
+## ✨ Features (upstream + fork)
+
+| Category | Features |
+|----------|----------|
+| 🎵 Core | Ad‑free, full library sync, offline caching, background playback |
+| 🔊 Audio | Gapless, crossfade, silence skipping, EBU R128 normalization, tempo/pitch, system EQ |
+| 🎤 Lyrics | 6 providers, word‑by‑word sync, romanization (JP/KO), translation |
+| 🎨 UI | Material You, synced lyrics, personalized home, year‑in‑review stats |
+| 🚗 Car | AA template‑based UI, voice search, media browsing |
+| 📥 Download | Deezer 128kbps MP3 with ID3v2.3 + album art |
+| 🤝 Together | LAN + Online synchronized listening |
+| 📊 Scrobbling | Last.fm + ListenBrainz |
 
 ---
 
 ## 🧠 Architecture
 
-Built using **modern Android engineering principles**:
+MVVM + UDF • Compose + M3 • Media3 ExoPlayer • Hilt DI • Room • Ktor • Coil 3
 
-- MVVM + Clean Architecture  
-- Unidirectional Data Flow (UDF)  
-- Modular & scalable codebase  
+```
+velune-doped/
+├── app/                    ← Android app (UI, playback, DI, car)
+├── innertube/              ← YouTube InnerTube API client
+├── deezer/                 ← Deezer ARL auth + MP3 download
+├── lrclib/                 ← LRC lyrics
+├── kugou/                  ← KuGou lyrics
+├── simpmusic/              ← SimpMusic lyrics
+├── betterlyrics/           ← TTML lyrics
+├── lastfm/                 ← Last.fm scrobbling
+├── kizzy/                  ← Discord RPC (disabled)
+└── canvas/                 ← Animated artwork
+```
 
 ---
 
-## 🛠 Tech Stack
+## 🔗 Original
 
-| Layer | Stack |
-|------|------|
-| Language | Kotlin |
-| UI | Jetpack Compose + Material 3 |
-| Audio | Media3 / ExoPlayer |
-| DI | Hilt |
-| Database | Room (Encrypted) |
-| Networking | Ktor + Retrofit |
-| Async | Coroutines + Flow |
-| Build | Gradle KTS |
+Fork of [Velune](https://github.com/nikhilvishwakarma00/Velune) by Nikhil. Upstream features preserved.
 
----
+## ⚖️ Legal
 
-## 📂 Project Structure
-
-```bash
-velune/
-├── app/
-├── innertube/
-├── lrclib/
-├── kizzy/
-├── canvas/
-├── lastfm/
-├── kugou/
-```
-
-Getting Started \
-Requirements\
-Android Studio Ladybug+\
-JDK 17
-Android SDK 34+ \
-Run Locally\
-Bash
-```
-git clone https://github.com/nikhilvishwakarma00/Velune.git\
-cd Velune\
-
-```
-Open in Android Studio → Sync → Run ▶ \
-📦 Download
- 
-
-🚀 Get Latest Release⁠ 
-
--------------------------------------------------------------------------
-
-## 💬 Community
-
-Have a feature request, found a bug,
-or just want to share your favorite music setups? Join the official Velune community!
-
-* *Discord:* [Join the Velune Server](https://discord.gg/cJNHTdpP6H)
-* *GitHub Discussions:* [Open a Discussion](https://github.com/nikhilvishwakarma00/Velune/discussions)
-
-
-
---------------------------------------------------------------------------------------------------------------
-
-
-🙌 Credits\
-Huge respect to these projects:
-
-Archivetune -base framework
-
-Metrolist
-
-InnerTune
-
-Kizzy
-
-SimpMusic
-
-BetterLyrics
-
-⚖️ Legal
-Velune is an independent client and is not affiliated with YouTube or Google.\
-Please support artists through official platforms ❤️\
-Licensed under GPL-3.0
- 
-
-💙 Built with passion by Nikhil\
-⭐ Star the repo if Velune impressed you\
-🚀 Help it reach more people
-
-## 🔗 Star History
-
-<div align="center">
-  <a href="https://star-history.com/nikhilvishwakarma00/velune&Date">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=nikhilvishwakarma00/velune&type=Date&theme=dark" />
-      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=nikhilvishwakarma00/velune&type=Date" />
-      <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=nikhilvishwakarma00/velune&type=Date" />
-    </picture>
-  </a>
-
-  <br/>
-  <br/><br/>
-</div>
- 
+Independent client. Not affiliated with YouTube, Google, or Deezer.  
+Licensed under **GPL-3.0**.

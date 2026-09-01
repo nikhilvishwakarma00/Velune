@@ -107,6 +107,8 @@ import com.nikhil.yt.ui.menu.YouTubeArtistMenu
 import com.nikhil.yt.ui.menu.YouTubePlaylistMenu
 import com.nikhil.yt.ui.menu.YouTubeSongMenu
 import androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider
+import android.content.res.Configuration
+import androidx.compose.ui.platform.LocalConfiguration
 import com.nikhil.yt.innertube.pages.MoodAndGenres
 import com.nikhil.yt.models.SimilarRecommendation
 import kotlin.math.min
@@ -515,6 +517,9 @@ fun MoodAndGenresSection(
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
+    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val itemWidth = if (isLandscape) 220.dp else 180.dp
+
     LazyHorizontalGrid(
         rows = GridCells.Fixed(4),
         contentPadding = PaddingValues(6.dp),
@@ -528,7 +533,7 @@ fun MoodAndGenresSection(
                 },
                 modifier = Modifier
                     .padding(6.dp)
-                    .width(180.dp)
+                    .width(itemWidth)
             )
         }
     }

@@ -23,8 +23,8 @@ android {
     applicationId = "com.nikhil.yt"
         minSdk = 26
         targetSdk = 36
-        versionCode = 10
-        versionName = "1.1.2 "
+        versionCode = 11
+        versionName = "1.1.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -45,6 +45,8 @@ android {
                 ?: System.getenv("TOGETHER_BEARER_TOKEN")
                 ?: ""
         buildConfigField("String", "TOGETHER_BEARER_TOKEN", "\"$togetherBearerToken\"")
+        buildConfigField("String", "VELUNE_BASE_VERSION", "\"1.1.2\"")
+        buildConfigField("String", "VELUNE_DOPED_VERSION", "\"1.1.3\"")
     }
 
     flavorDimensions += "abi"
@@ -130,13 +132,15 @@ android {
     }
 
     androidResources {
-        generateLocaleConfig = true
+        generateLocaleConfig = false
     }
+
+    experimentalProperties["android.experimental.standalone.16kPageAlignment"] = true
 
     packaging {
         jniLibs {
-            useLegacyPackaging = false
-            keepDebugSymbols += listOf(
+            useLegacyPackaging = true
+            excludes += listOf(
                 "**/libandroidx.graphics.path.so",
                 "**/libdatastore_shared_counter.so"
             )
@@ -148,6 +152,10 @@ android {
             excludes += "META-INF/LICENSE.md"
         }
     }
+}
+
+base {
+    archivesName.set("Velune_Doped_v${android.defaultConfig.versionName?.trim()}")
 }
 
 kotlin {
@@ -197,6 +205,7 @@ dependencies {
     implementation(libs.media3.okhttp)
     implementation("androidx.media3:media3-ui:${libs.versions.media3.get()}")
     implementation(libs.squigglyslider)
+    implementation(libs.car.app)
 
     implementation(libs.room.runtime)
     implementation(libs.kuromoji.ipadic)
@@ -218,6 +227,7 @@ dependencies {
     implementation(project(":kizzy"))
     implementation(project(":simpmusic"))
     implementation(project(":canvas"))
+    implementation(project(":deezer"))
     implementation("com.github.Kyant0:m3color:2025.4")
     implementation(libs.backdrop)
 
@@ -246,11 +256,7 @@ dependencies {
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_21)
-        freeCompilerArgs.add("-Xannotation-default-target=param-property")
-        freeCompilerArgs.addAll(
-            "-opt-in=kotlin.RequiresOptIn",
-            "-Xcontext-receivers"
-        )
+        freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
         // Suppress warnings
         suppressWarnings.set(true)
     }
@@ -260,10 +266,21 @@ configurations.configureEach {
     resolutionStrategy.force(
         "androidx.compose.runtime:runtime:${libs.versions.compose.get()}",
         "androidx.compose.foundation:foundation:${libs.versions.compose.get()}",
+        "androidx.compose.foundation:foundation-layout:${libs.versions.compose.get()}",
         "androidx.compose.ui:ui:${libs.versions.compose.get()}",
+        "androidx.compose.ui:ui-geometry:${libs.versions.compose.get()}",
+        "androidx.compose.ui:ui-graphics:${libs.versions.compose.get()}",
+        "androidx.compose.ui:ui-text:${libs.versions.compose.get()}",
+        "androidx.compose.ui:ui-unit:${libs.versions.compose.get()}",
         "androidx.compose.ui:ui-util:${libs.versions.compose.get()}",
         "androidx.compose.ui:ui-tooling:${libs.versions.compose.get()}",
+        "androidx.compose.ui:ui-tooling-preview:${libs.versions.compose.get()}",
+        "androidx.compose.animation:animation:${libs.versions.compose.get()}",
         "androidx.compose.animation:animation-graphics:${libs.versions.compose.get()}",
+        "androidx.compose.material3:material3:${libs.versions.material3.get()}",
+        "androidx.compose.material:material:${libs.versions.compose.get()}",
+        "androidx.compose.material:material-icons-core:${libs.versions.compose.get()}",
+        "androidx.compose.material:material-ripple:${libs.versions.compose.get()}",
     )
 }
 

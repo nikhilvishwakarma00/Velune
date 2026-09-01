@@ -8,6 +8,7 @@
 
 package com.nikhil.yt.ui.player
 
+import com.nikhil.yt.ui.component.BigSeekBar
 import com.nikhil.yt.ui.component.VeluneLoader
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -45,6 +46,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import android.content.res.Configuration
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalIconButton
@@ -62,6 +64,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import android.content.ContentValues
+import android.provider.MediaStore
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import com.nikhil.yt.constants.DeezerArlKey
+import com.nikhil.yt.constants.DeezerQualityKey
+import com.nikhil.yt.constants.EnableDeezerKey
+import com.nikhil.yt.constants.ShowVUMeterKey
+import com.nikhil.yt.deezer.Deezer
+import com.nikhil.yt.utils.rememberPreference
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
@@ -237,6 +252,120 @@ fun PlayerTitleSection(
 }
 
 @Composable
+fun DeezerDownloadButton(
+    mediaMetadata: MediaMetadata,
+    iconButtonColor: Color,
+    textBackgroundColor: Color,
+    size: androidx.compose.ui.unit.Dp = 24.dp,
+    backgroundColor: Color? = null,
+    containerSize: androidx.compose.ui.unit.Dp? = null,
+    shape: androidx.compose.ui.graphics.Shape = CircleShape
+) {
+    val context = LocalContext.current
+    val (enableDeezerPref) = rememberPreference(EnableDeezerKey, false)
+    val (deezerArl) = rememberPreference(DeezerArlKey, "")
+    val (deezerQuality) = rememberPreference(DeezerQualityKey, "MP3_128")
+    val coroutineScope = rememberCoroutineScope()
+    var isDownloading by remember { mutableStateOf(false) }
+
+    if (!enableDeezerPref) return
+
+    Box(
+        modifier = Modifier
+            .size(containerSize ?: (size + 12.dp))
+            .clip(shape)
+            .then(if (backgroundColor != null) Modifier.background(backgroundColor) else Modifier)
+            .clickable(enabled = !isDownloading) {
+                if (deezerArl.isBlank()) {
+                    Toast.makeText(context, "Deezer: enter ARL in Settings → Integrations", Toast.LENGTH_LONG).show()
+                    return@clickable
+                }
+                isDownloading = true
+                coroutineScope.launch {
+                    Deezer.setLogDir(context.cacheDir)
+                    try {
+                        Deezer.setArl(deezerArl)
+                        val loginResult = Deezer.login()
+                        loginResult.onFailure {
+                            Toast.makeText(context, "Deezer: Login failed - ${it.message}", Toast.LENGTH_LONG).show()
+                            isDownloading = false
+                            return@launch
+                        }
+                        val cacheDir = context.cacheDir.resolve("deezer_tmp")
+                        val title = mediaMetadata.title
+                        val artist = mediaMetadata.artists.joinToString(", ") { it.name }
+                        val result = Deezer.searchAndDownload(title, artist, cacheDir, deezerQuality)
+                        result.onSuccess { file ->
+                            val values = ContentValues().apply {
+                                put(MediaStore.Audio.Media.DISPLAY_NAME, file.name)
+                                put(MediaStore.Audio.Media.MIME_TYPE, "audio/mpeg")
+                                put(MediaStore.Audio.Media.RELATIVE_PATH, "Music/Deezer")
+                                put(MediaStore.Audio.Media.IS_PENDING, 1)
+                            }
+                            val uri = context.contentResolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, values)
+                            if (uri != null) {
+                                context.contentResolver.openOutputStream(uri)?.use { out ->
+                                    file.inputStream().use { it.copyTo(out) }
+                                }
+                                values.clear()
+                                values.put(MediaStore.Audio.Media.IS_PENDING, 0)
+                                context.contentResolver.update(uri, values, null, null)
+                            }
+                            file.delete()
+                            Toast.makeText(context, "Saved: ${file.name} → Music/Deezer/", Toast.LENGTH_SHORT).show()
+                        }.onFailure {
+                            Toast.makeText(context, "Deezer: ${it.message}", Toast.LENGTH_LONG).show()
+                        }
+                    } catch (e: Exception) {
+                        Toast.makeText(context, "Deezer: ${e.javaClass.simpleName}: ${e.message}", Toast.LENGTH_LONG).show()
+                    } finally {
+                        isDownloading = false
+                    }
+                }
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        if (isDownloading) {
+            VeluneLoader(size = size, color = iconButtonColor)
+        } else {
+            Icon(
+                painter = painterResource(R.drawable.download),
+                contentDescription = "Download from Deezer",
+                tint = iconButtonColor,
+                modifier = Modifier.size(size)
+            )
+        }
+    }
+}
+
+@Composable
+fun VuMeterToggleButton(
+    iconButtonColor: Color,
+    textBackgroundColor: Color,
+    size: androidx.compose.ui.unit.Dp = 24.dp,
+    backgroundColor: Color? = null,
+    containerSize: androidx.compose.ui.unit.Dp? = null,
+    shape: androidx.compose.ui.graphics.Shape = CircleShape
+) {
+    var showVUMeter by rememberPreference(ShowVUMeterKey, false)
+    Box(
+        modifier = Modifier
+            .size(containerSize ?: (size + 16.dp))
+            .clip(shape)
+            .then(if (backgroundColor != null) Modifier.background(backgroundColor) else Modifier)
+            .clickable { showVUMeter = !showVUMeter },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painter = painterResource(if (showVUMeter) R.drawable.image else R.drawable.tune),
+            contentDescription = "Toggle VU Meter",
+            tint = if (showVUMeter) MaterialTheme.colorScheme.primary else iconButtonColor,
+            modifier = Modifier.size(size)
+        )
+    }
+}
+
+@Composable
 fun PlayerTopActions(
     mediaMetadata: MediaMetadata,
     playerDesignStyle: PlayerDesignStyle,
@@ -251,6 +380,93 @@ fun PlayerTopActions(
     context: Context,
     currentSongLiked: Boolean
 ) {
+    var showSleepTimerDialog by remember { mutableStateOf(false) }
+    var sleepTimerValue by remember { androidx.compose.runtime.mutableFloatStateOf(30f) }
+    var showEqualizerDialog by remember { mutableStateOf(false) }
+
+    val activityResultLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(),
+        onResult = {}
+    )
+
+    if (showSleepTimerDialog) {
+        androidx.compose.material3.AlertDialog(
+            properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false),
+            onDismissRequest = { showSleepTimerDialog = false },
+            icon = {
+                Icon(
+                    painter = painterResource(R.drawable.bedtime),
+                    contentDescription = null
+                )
+            },
+            title = { Text(androidx.compose.ui.res.stringResource(R.string.sleep_timer)) },
+            confirmButton = {
+                androidx.compose.material3.TextButton(
+                    onClick = {
+                        showSleepTimerDialog = false
+                        playerConnection.service.sleepTimer.start(sleepTimerValue.toInt())
+                    },
+                ) {
+                    Text(androidx.compose.ui.res.stringResource(android.R.string.ok))
+                }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(
+                    onClick = { showSleepTimerDialog = false },
+                ) {
+                    Text(androidx.compose.ui.res.stringResource(android.R.string.cancel))
+                }
+            },
+            text = {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = androidx.compose.ui.res.pluralStringResource(
+                            R.plurals.minute,
+                            sleepTimerValue.toInt(),
+                            sleepTimerValue.toInt()
+                        ),
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+
+                    Slider(
+                        value = sleepTimerValue,
+                        onValueChange = { sleepTimerValue = it },
+                        valueRange = 5f..120f,
+                        steps = (120 - 5) / 5 - 1,
+                    )
+
+                    androidx.compose.material3.OutlinedIconButton(
+                        onClick = {
+                            showSleepTimerDialog = false
+                            playerConnection.service.sleepTimer.start(-1)
+                        },
+                    ) {
+                        Text(androidx.compose.ui.res.stringResource(R.string.end_of_song))
+                    }
+                }
+            }
+        )
+    }
+
+    if (showEqualizerDialog) {
+        com.nikhil.yt.ui.menu.EqualizerDialog(
+            onDismiss = { showEqualizerDialog = false },
+            openSystemEqualizer = {
+                val intent = Intent(android.media.audiofx.AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL).apply {
+                    putExtra(
+                        android.media.audiofx.AudioEffect.EXTRA_AUDIO_SESSION,
+                        playerConnection.player.audioSessionId,
+                    )
+                    putExtra(android.media.audiofx.AudioEffect.EXTRA_PACKAGE_NAME, context.packageName)
+                    putExtra(android.media.audiofx.AudioEffect.EXTRA_CONTENT_TYPE, android.media.audiofx.AudioEffect.CONTENT_TYPE_MUSIC)
+                }
+                if (intent.resolveActivity(context.packageManager) != null) {
+                    activityResultLauncher.launch(intent)
+                }
+            }
+        )
+    }
+
     when (playerDesignStyle) {
         PlayerDesignStyle.V2 -> {
             val shareShape = RoundedCornerShape(
@@ -267,6 +483,23 @@ fun PlayerTopActions(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                DeezerDownloadButton(
+                    mediaMetadata = mediaMetadata,
+                    iconButtonColor = iconButtonColor,
+                    textBackgroundColor = textBackgroundColor,
+                    size = 24.dp,
+                    backgroundColor = textButtonColor,
+                    containerSize = 42.dp,
+                    shape = CircleShape
+                )
+                VuMeterToggleButton(
+                    iconButtonColor = iconButtonColor,
+                    textBackgroundColor = textBackgroundColor,
+                    size = 24.dp,
+                    backgroundColor = textButtonColor,
+                    containerSize = 42.dp,
+                    shape = CircleShape
+                )
                 Box(
                     modifier = Modifier
                         .size(42.dp)
@@ -325,6 +558,21 @@ fun PlayerTopActions(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                DeezerDownloadButton(
+                    mediaMetadata = mediaMetadata,
+                    iconButtonColor = textBackgroundColor.copy(alpha = 0.7f),
+                    textBackgroundColor = textBackgroundColor,
+                    size = 20.dp,
+                    containerSize = 36.dp,
+                    shape = RoundedCornerShape(12.dp)
+                )
+                VuMeterToggleButton(
+                    iconButtonColor = textBackgroundColor.copy(alpha = 0.7f),
+                    textBackgroundColor = textBackgroundColor,
+                    size = 20.dp,
+                    containerSize = 36.dp,
+                    shape = RoundedCornerShape(12.dp)
+                )
                 Box(
                     modifier = Modifier
                         .size(36.dp)
@@ -373,9 +621,26 @@ fun PlayerTopActions(
 
         PlayerDesignStyle.V4 -> {
             Row(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                DeezerDownloadButton(
+                    mediaMetadata = mediaMetadata,
+                    iconButtonColor = textBackgroundColor,
+                    textBackgroundColor = textBackgroundColor,
+                    size = 22.dp,
+                    backgroundColor = textBackgroundColor.copy(alpha = 0.12f),
+                    containerSize = 44.dp,
+                    shape = RoundedCornerShape(14.dp)
+                )
+                VuMeterToggleButton(
+                    iconButtonColor = textBackgroundColor,
+                    textBackgroundColor = textBackgroundColor,
+                    size = 22.dp,
+                    backgroundColor = textBackgroundColor.copy(alpha = 0.12f),
+                    containerSize = 44.dp,
+                    shape = RoundedCornerShape(14.dp)
+                )
                 Surface(
                     onClick = {
                         val intent = Intent().apply {
@@ -430,6 +695,42 @@ fun PlayerTopActions(
                 }
 
                 Surface(
+                    onClick = { showSleepTimerDialog = true },
+                    shape = RoundedCornerShape(14.dp),
+                    color = textBackgroundColor.copy(alpha = 0.12f),
+                    modifier = Modifier
+                        .height(44.dp)
+                        .width(44.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                        Icon(
+                            painter = painterResource(R.drawable.bedtime),
+                            contentDescription = "Timer di spegnimento",
+                            tint = textBackgroundColor,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                }
+
+                Surface(
+                    onClick = { showEqualizerDialog = true },
+                    shape = RoundedCornerShape(14.dp),
+                    color = textBackgroundColor.copy(alpha = 0.12f),
+                    modifier = Modifier
+                        .height(44.dp)
+                        .width(44.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                        Icon(
+                            painter = painterResource(R.drawable.equalizer),
+                            contentDescription = "Equalizzatore",
+                            tint = textBackgroundColor,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                }
+
+                Surface(
                     onClick = {
                         menuState.show {
                             PlayerMenu(
@@ -466,6 +767,29 @@ fun PlayerTopActions(
         }
 
         PlayerDesignStyle.V1 -> {
+            DeezerDownloadButton(
+                mediaMetadata = mediaMetadata,
+                iconButtonColor = iconButtonColor,
+                textBackgroundColor = textBackgroundColor,
+                size = 24.dp,
+                backgroundColor = textButtonColor,
+                containerSize = 40.dp,
+                shape = RoundedCornerShape(24.dp)
+            )
+
+            Spacer(modifier = Modifier.size(12.dp))
+
+            VuMeterToggleButton(
+                iconButtonColor = iconButtonColor,
+                textBackgroundColor = textBackgroundColor,
+                size = 24.dp,
+                backgroundColor = textButtonColor,
+                containerSize = 40.dp,
+                shape = RoundedCornerShape(24.dp)
+            )
+
+            Spacer(modifier = Modifier.size(12.dp))
+
             Box(
                 modifier =
                 Modifier
@@ -713,6 +1037,10 @@ fun PlayerPlaybackControls(
 ) {
     val shuffleModeEnabled by playerConnection.shuffleModeEnabled.collectAsState()
 
+    val orientation = LocalConfiguration.current.orientation
+    val isLandscape = orientation == Configuration.ORIENTATION_LANDSCAPE
+    val ls = if (isLandscape) 1.3f else 1f
+
     when (playerDesignStyle) {
         PlayerDesignStyle.V2 -> {
             BoxWithConstraints(
@@ -768,7 +1096,7 @@ fun PlayerPlaybackControls(
                             .clip(RoundedCornerShape(32.dp))
                     ) {
                         if (isLoading) {
-                            VeluneLoader(size = 42.dp)
+                            VeluneLoader(size = 42.dp, color = iconButtonColor)
                         } else {
                             Icon(
                                 painter = painterResource(
@@ -825,7 +1153,7 @@ fun PlayerPlaybackControls(
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(40.dp)
+                            .size((40.dp * ls).coerceAtLeast(40.dp))
                             .clip(RoundedCornerShape(10.dp))
                             .semantics {
                                 role = Role.Button
@@ -849,7 +1177,7 @@ fun PlayerPlaybackControls(
 
                     Box(
                         modifier = Modifier
-                            .size(52.dp)
+                            .size((52.dp * ls).coerceAtLeast(52.dp))
                             .clip(RoundedCornerShape(14.dp))
                             .background(textBackgroundColor.copy(alpha = 0.08f))
                             .clickable(enabled = canSkipPrevious) {
@@ -867,7 +1195,7 @@ fun PlayerPlaybackControls(
 
                     Box(
                         modifier = Modifier
-                            .size(70.dp)
+                            .size((70.dp * ls).coerceAtLeast(70.dp))
                             .clip(RoundedCornerShape(50))
                             .background(textBackgroundColor)
                             .clickable {
@@ -881,7 +1209,7 @@ fun PlayerPlaybackControls(
                         contentAlignment = Alignment.Center
                     ) {
                         if (isLoading) {
-                            VeluneLoader(size = 32.dp)
+                            VeluneLoader(size = 32.dp, color = icBackgroundColor)
                         } else {
                             Icon(
                                 painter = painterResource(
@@ -904,7 +1232,7 @@ fun PlayerPlaybackControls(
 
                     Box(
                         modifier = Modifier
-                            .size(52.dp)
+                            .size((52.dp * ls).coerceAtLeast(52.dp))
                             .clip(RoundedCornerShape(14.dp))
                             .background(textBackgroundColor.copy(alpha = 0.08f))
                             .clickable(enabled = canSkipNext) {
@@ -922,7 +1250,7 @@ fun PlayerPlaybackControls(
 
                     Box(
                         modifier = Modifier
-                            .size(40.dp)
+                            .size((40.dp * ls).coerceAtLeast(40.dp))
                             .clip(RoundedCornerShape(10.dp))
                             .semantics {
                                 role = Role.Button
@@ -1074,7 +1402,7 @@ fun PlayerPlaybackControls(
                             contentAlignment = Alignment.Center
                         ) {
                             if (isLoading) {
-                                VeluneLoader(size = 40.dp)
+                                VeluneLoader(size = 40.dp, color = icBackgroundColor)
                             } else {
                                 Icon(
                                     painter = painterResource(
@@ -1186,7 +1514,7 @@ fun PlayerPlaybackControls(
                         contentDescription = "Toggle repeat",
                         color = textBackgroundColor,
                         modifier = Modifier
-                            .size(32.dp)
+                            .size((32.dp * ls).coerceAtLeast(32.dp))
                             .padding(4.dp)
                             .align(Alignment.Center)
                             .alpha(if (repeatMode == Player.REPEAT_MODE_OFF) 0.5f else 1f),
@@ -1204,18 +1532,18 @@ fun PlayerPlaybackControls(
                         color = textBackgroundColor,
                         modifier =
                         Modifier
-                            .size(32.dp)
+                            .size((32.dp * ls).coerceAtLeast(32.dp))
                             .align(Alignment.Center),
                         onClick = playerConnection::seekToPrevious,
                     )
                 }
 
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width((8.dp * ls).coerceAtLeast(8.dp)))
 
                 Box(
                     modifier =
                     Modifier
-                        .size(72.dp)
+                        .size((72.dp * ls).coerceAtLeast(72.dp))
                         .clip(RoundedCornerShape(playPauseRoundness))
                         .background(textButtonColor)
                         .clickable {
@@ -1228,7 +1556,7 @@ fun PlayerPlaybackControls(
                         },
                 ) {
                     if (isLoading) {
-                        VeluneLoader(size = 36.dp)
+                        VeluneLoader(size = 36.dp, color = iconButtonColor, modifier = Modifier.align(Alignment.Center))
                     } else {
                         Image(
                             painter =
@@ -1257,7 +1585,7 @@ fun PlayerPlaybackControls(
                     }
                 }
 
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width((8.dp * ls).coerceAtLeast(8.dp)))
 
                 Box(modifier = Modifier.weight(1f)) {
                     ResizableIconButton(
@@ -1267,7 +1595,7 @@ fun PlayerPlaybackControls(
                         color = textBackgroundColor,
                         modifier =
                         Modifier
-                            .size(32.dp)
+                            .size((32.dp * ls).coerceAtLeast(32.dp))
                             .align(Alignment.Center),
                         onClick = playerConnection::seekToNext,
                     )
@@ -1280,7 +1608,7 @@ fun PlayerPlaybackControls(
                         color = if (currentSongLiked) MaterialTheme.colorScheme.error else textBackgroundColor,
                         modifier =
                         Modifier
-                            .size(32.dp)
+                            .size((32.dp * ls).coerceAtLeast(32.dp))
                             .padding(4.dp)
                             .align(Alignment.Center),
                         onClick = playerConnection::toggleLike,
@@ -1323,7 +1651,8 @@ fun PlayerControlsContent(
     clipboardManager: ClipboardManager,
     context: Context,
     onSliderValueChange: (Long) -> Unit,
-    onSliderValueChangeFinished: () -> Unit
+    onSliderValueChangeFinished: () -> Unit,
+    showVUMeter: Boolean = false
 ) {
     val currentSong by playerConnection.currentSong.collectAsState(initial = null)
     val currentSongLiked = currentSong?.song?.liked == true
@@ -1341,18 +1670,20 @@ fun PlayerControlsContent(
             .fillMaxWidth()
             .padding(horizontal = PlayerHorizontalPadding),
     ) {
-        Column(modifier = Modifier.weight(1f)) {
-            PlayerTitleSection(
-                mediaMetadata = mediaMetadata,
-                textBackgroundColor = textBackgroundColor,
-                navController = navController,
-                state = state,
-                clipboardManager = clipboardManager,
-                context = context
-            )
-        }
+        if (!showVUMeter) {
+            Column(modifier = Modifier.weight(1f)) {
+                PlayerTitleSection(
+                    mediaMetadata = mediaMetadata,
+                    textBackgroundColor = textBackgroundColor,
+                    navController = navController,
+                    state = state,
+                    clipboardManager = clipboardManager,
+                    context = context
+                )
+            }
 
-        Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(12.dp))
+        }
 
         PlayerTopActions(
             mediaMetadata = mediaMetadata,
@@ -1410,6 +1741,41 @@ fun PlayerControlsContent(
         playerConnection = playerConnection,
         currentSongLiked = currentSongLiked
     )
+
+    Spacer(Modifier.height(16.dp))
+
+    val playerVolume by playerConnection.service.playerVolume.collectAsState()
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = PlayerHorizontalPadding),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.volume_off),
+            contentDescription = "Min volume",
+            modifier = Modifier.size(18.dp),
+            tint = textBackgroundColor.copy(alpha = 0.6f)
+        )
+
+        BigSeekBar(
+            progressProvider = { playerVolume },
+            onProgressChange = { playerConnection.service.playerVolume.value = it },
+            color = textBackgroundColor,
+            modifier = Modifier
+                .weight(1f)
+                .height(24.dp)
+                .padding(horizontal = 12.dp)
+        )
+
+        Icon(
+            painter = painterResource(R.drawable.volume_up),
+            contentDescription = "Max volume",
+            modifier = Modifier.size(18.dp),
+            tint = textBackgroundColor.copy(alpha = 0.6f)
+        )
+    }
 }
 @Composable
 fun PlayerBackground(

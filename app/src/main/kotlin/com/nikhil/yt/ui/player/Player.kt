@@ -14,6 +14,8 @@ import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -27,6 +29,8 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -70,6 +74,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.media3.common.C
@@ -89,6 +94,7 @@ import com.nikhil.yt.constants.DisableBlurKey
 import com.nikhil.yt.constants.PlayerBackgroundStyle
 import com.nikhil.yt.constants.PlayerBackgroundStyleKey
 import com.nikhil.yt.constants.PlayerButtonsStyle
+import com.nikhil.yt.constants.ShowVUMeterKey
 import com.nikhil.yt.constants.PlayerButtonsStyleKey
 import com.nikhil.yt.constants.PlayerCustomBlurKey
 import com.nikhil.yt.constants.PlayerCustomBrightnessKey
@@ -104,7 +110,9 @@ import com.nikhil.yt.extensions.metadata
 import com.nikhil.yt.extensions.togglePlayPause
 import com.nikhil.yt.innertube.toHighResThumbnail
 import com.nikhil.yt.models.MediaMetadata
+import com.nikhil.yt.ui.component.BigSeekBar
 import com.nikhil.yt.ui.component.BottomSheet
+import com.nikhil.yt.ui.component.VuMeter
 import com.nikhil.yt.ui.component.BottomSheetState
 import com.nikhil.yt.ui.component.LocalBottomSheetPageState
 import com.nikhil.yt.ui.component.LocalMenuState
@@ -214,7 +222,13 @@ fun BottomSheetPlayer(
     val currentSongLiked = currentSong?.song?.liked == true
     val queueWindows by playerConnection.queueWindows.collectAsState()
     val currentWindowIndex by playerConnection.currentWindowIndex.collectAsState()
-    playerConnection.service.playerVolume.collectAsState()
+    val queueTitle by playerConnection.queueTitle.collectAsState()
+    val (thumbnailCornerRadius, _) = rememberPreference(
+        key = com.nikhil.yt.constants.ThumbnailCornerRadiusKey,
+        defaultValue = 16f
+    )
+
+    var showVUMeter by rememberPreference(ShowVUMeterKey, false)
 
     val automix by playerConnection.service.automixItems.collectAsState()
     val repeatMode by playerConnection.repeatMode.collectAsState()
@@ -598,6 +612,7 @@ fun BottomSheetPlayer(
                 context = context,
                 onSliderValueChange = onSliderValueChange,
                 onSliderValueChangeFinished = onSliderValueChangeFinished,
+                showVUMeter = true
             )
         }
 
@@ -662,11 +677,110 @@ fun BottomSheetPlayer(
                         ) {
                             val screenWidth = LocalConfiguration.current.screenWidthDp
                             val thumbnailSize = (screenWidth * 0.4).dp
-                            Thumbnail(
-                                sliderPositionProvider = { sliderPosition },
-                                modifier = Modifier.size(thumbnailSize),
-                                isPlayerExpanded = state.isExpanded
-                            )
+                            if (showVUMeter) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier.fillMaxHeight()
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .aspectRatio(16f / 9f),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        VuMeter(
+                                            modifier = Modifier.fillMaxSize(),
+                                            isPlayerExpanded = state.isExpanded,
+                                            cornerRadius = thumbnailCornerRadius,
+                                            isWide = true
+                                        )
+                                        if (isLoading) {
+                                            com.nikhil.yt.ui.component.VeluneLoader(
+                                                size = 48.dp,
+                                                color = TextBackgroundColor,
+                                                modifier = Modifier.align(Alignment.Center)
+                                            )
+                                        }
+
+                                        Box(
+                                            modifier = Modifier
+                                                .align(Alignment.TopEnd)
+                                                .padding(4.dp)
+                                                .size(28.dp)
+                                                .clip(CircleShape)
+                                                .background(Color.Black.copy(alpha = 0.4f))
+                                                .clickable { showVUMeter = false },
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.image),
+                                                contentDescription = "Show artwork",
+                                                tint = Color.White,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    val currentMetadata = enrichedMetadata ?: mediaMetadata
+                                    currentMetadata?.let { metadata ->
+                                        PlayerTitleSection(
+                                            mediaMetadata = metadata,
+                                            textBackgroundColor = TextBackgroundColor,
+                                            navController = navController,
+                                            state = state,
+                                            clipboardManager = clipboardManager,
+                                            context = context
+                                        )
+                                    }
+                                }
+                            } else {
+                                Box(modifier = Modifier.size(thumbnailSize)) {
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        modifier = Modifier.fillMaxSize()
+                                    ) {
+                                        Box(
+                                            modifier = Modifier.weight(1f),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Thumbnail(
+                                                sliderPositionProvider = { sliderPosition },
+                                                modifier = Modifier.fillMaxSize(),
+                                                isPlayerExpanded = state.isExpanded
+                                            )
+                                            Box(
+                                                modifier = Modifier
+                                                    .align(Alignment.TopEnd)
+                                                    .padding(4.dp)
+                                                    .size(28.dp)
+                                                    .clip(CircleShape)
+                                                    .background(Color.Black.copy(alpha = 0.4f))
+                                                    .clickable { showVUMeter = true },
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(R.drawable.tune),
+                                                    contentDescription = "Show VU meter",
+                                                    tint = Color.White,
+                                                    modifier = Modifier.size(16.dp)
+                                                )
+                                            }
+                                        }
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        val currentMetadata = enrichedMetadata ?: mediaMetadata
+                                        currentMetadata?.let { metadata ->
+                                            PlayerTitleSection(
+                                                mediaMetadata = metadata,
+                                                textBackgroundColor = TextBackgroundColor,
+                                                navController = navController,
+                                                state = state,
+                                                clipboardManager = clipboardManager,
+                                                context = context
+                                            )
+                                        }
+                                    }
+                                }
+                            }
                         }
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
@@ -735,11 +849,172 @@ fun BottomSheetPlayer(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier.weight(1f),
                         ) {
-                            Thumbnail(
-                                sliderPositionProvider = { sliderPosition },
-                                modifier = Modifier.nestedScroll(state.preUpPostDownNestedScrollConnection),
-                                isPlayerExpanded = state.isExpanded
-                            )
+                            if (showVUMeter) {
+                                Box(
+                                    modifier = Modifier.nestedScroll(state.preUpPostDownNestedScrollConnection)
+                                ) {
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        modifier = Modifier.fillMaxSize().statusBarsPadding()
+                                    ) {
+                                        Column(
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            modifier = Modifier.padding(horizontal = 32.dp, vertical = 16.dp)
+                                        ) {
+                                            Text(
+                                                text = stringResource(R.string.now_playing),
+                                                style = MaterialTheme.typography.titleMedium,
+                                                color = TextBackgroundColor
+                                            )
+                                            val currentMetadata = enrichedMetadata ?: mediaMetadata
+                                            val playingFrom = queueTitle ?: currentMetadata?.album?.title
+                                            if (!playingFrom.isNullOrBlank()) {
+                                                Spacer(modifier = Modifier.height(4.dp))
+                                                Text(
+                                                    text = playingFrom,
+                                                    style = MaterialTheme.typography.titleMedium,
+                                                    color = TextBackgroundColor.copy(alpha = 0.8f),
+                                                    maxLines = 1,
+                                                    modifier = Modifier.basicMarquee(),
+                                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                                )
+                                            }
+                                        }
+
+                                        val screenWidth = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.dp
+                                        val vuSize = screenWidth - (com.nikhil.yt.constants.PlayerHorizontalPadding * 2)
+
+                                        Box(
+                                            modifier = Modifier.weight(1f),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(vuSize)
+                                                    .aspectRatio(16f / 9f),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                VuMeter(
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    isPlayerExpanded = state.isExpanded,
+                                                    cornerRadius = thumbnailCornerRadius,
+                                                    isWide = true
+                                                )
+                                                if (isLoading) {
+                                                    com.nikhil.yt.ui.component.VeluneLoader(
+                                                        size = 48.dp,
+                                                        color = TextBackgroundColor,
+                                                        modifier = Modifier.align(Alignment.Center)
+                                                    )
+                                                }
+
+                                                Box(
+                                                    modifier = Modifier
+                                                        .align(Alignment.TopEnd)
+                                                        .padding(8.dp)
+                                                        .size(28.dp)
+                                                        .clip(CircleShape)
+                                                        .background(Color.Black.copy(alpha = 0.4f))
+                                                        .clickable { showVUMeter = false },
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Icon(
+                                                        painter = painterResource(R.drawable.image),
+                                                        contentDescription = "Show artwork",
+                                                        tint = Color.White,
+                                                        modifier = Modifier.size(16.dp)
+                                                    )
+                                                }
+                                            }
+                                        }
+                                        Spacer(modifier = Modifier.height(16.dp))
+                                        val currentMetadata = enrichedMetadata ?: mediaMetadata
+                                        currentMetadata?.let { metadata ->
+                                            Column(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(horizontal = com.nikhil.yt.constants.PlayerHorizontalPadding)
+                                            ) {
+                                                PlayerTitleSection(
+                                                    mediaMetadata = metadata,
+                                                    textBackgroundColor = TextBackgroundColor,
+                                                    navController = navController,
+                                                    state = state,
+                                                    clipboardManager = clipboardManager,
+                                                    context = context
+                                                )
+                                            }
+                                        }
+                                        Spacer(modifier = Modifier.height(12.dp))
+                                    }
+                                }
+                            } else {
+                                Box(
+                                    modifier = Modifier.nestedScroll(state.preUpPostDownNestedScrollConnection)
+                                ) {
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        modifier = Modifier.fillMaxSize()
+                                    ) {
+                                        val screenWidth = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.dp
+                                        val vuSize = screenWidth - (com.nikhil.yt.constants.PlayerHorizontalPadding * 2)
+
+                                        Box(
+                                            modifier = Modifier.weight(1f),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(vuSize)
+                                                    .aspectRatio(1f),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Thumbnail(
+                                                    sliderPositionProvider = { sliderPosition },
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    isPlayerExpanded = state.isExpanded
+                                                )
+                                                Box(
+                                                    modifier = Modifier
+                                                        .align(Alignment.TopEnd)
+                                                        .padding(8.dp)
+                                                        .size(28.dp)
+                                                        .clip(CircleShape)
+                                                        .background(Color.Black.copy(alpha = 0.4f))
+                                                        .clickable { showVUMeter = true },
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Icon(
+                                                        painter = painterResource(R.drawable.tune),
+                                                        contentDescription = "Show VU meter",
+                                                        tint = Color.White,
+                                                        modifier = Modifier.size(16.dp)
+                                                    )
+                                                }
+                                            }
+                                        }
+                                        Spacer(modifier = Modifier.height(16.dp))
+                                        val currentMetadata = enrichedMetadata ?: mediaMetadata
+                                        currentMetadata?.let { metadata ->
+                                            Column(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(horizontal = com.nikhil.yt.constants.PlayerHorizontalPadding)
+                                            ) {
+                                                PlayerTitleSection(
+                                                    mediaMetadata = metadata,
+                                                    textBackgroundColor = TextBackgroundColor,
+                                                    navController = navController,
+                                                    state = state,
+                                                    clipboardManager = clipboardManager,
+                                                    context = context
+                                                )
+                                            }
+                                        }
+                                        Spacer(modifier = Modifier.height(12.dp))
+                                    }
+                                }
+                            }
                         }
 
                         enrichedMetadata?.let {
@@ -1082,7 +1357,42 @@ private fun MetroPlayerContent(
                 }
             }
 
-            Spacer(modifier = Modifier.height(72.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+
+            val playerVolume by playerConnection.service.playerVolume.collectAsState()
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.volume_off),
+                    contentDescription = "Min volume",
+                    modifier = Modifier.size(18.dp),
+                    tint = textColor.copy(alpha = 0.6f)
+                )
+
+                BigSeekBar(
+                    progressProvider = { playerVolume },
+                    onProgressChange = { playerConnection.service.playerVolume.value = it },
+                    color = textColor,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(24.dp)
+                        .padding(horizontal = 12.dp)
+                )
+
+                Icon(
+                    painter = painterResource(R.drawable.volume_up),
+                    contentDescription = "Max volume",
+                    modifier = Modifier.size(18.dp),
+                    tint = textColor.copy(alpha = 0.6f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(36.dp))
         }
     }
 }

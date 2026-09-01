@@ -478,6 +478,12 @@ class MainActivity : ComponentActivity() {
                 //     }
                 // }
                 // com.nikhil.yt.utils.UpdateNotificationManager.checkForUpdates(this@MainActivity)
+                // Sync saved Spotify playlists on startup
+                launch(Dispatchers.IO) {
+                    try {
+                        com.nikhil.yt.utils.SpotifyImporter.syncSavedPlaylists(this@MainActivity, database)
+                    } catch (_: Exception) {}
+                }
             }
 
             // Use remembered instances so the same state object is used everywhere

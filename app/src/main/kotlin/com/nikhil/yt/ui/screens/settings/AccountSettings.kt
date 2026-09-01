@@ -760,9 +760,15 @@ private fun AppVersionFooter() {
         )
         Spacer(Modifier.height(2.dp))
         Text(
-            text = "Version ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
+            text = "Velune Doped v${BuildConfig.VELUNE_DOPED_VERSION}",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+        )
+        Spacer(Modifier.height(2.dp))
+        Text(
+            text = "Base Velune v${BuildConfig.VELUNE_BASE_VERSION} (fork)",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
         )
     }
 }

@@ -273,6 +273,7 @@ fun Thumbnail(
     val swipeThumbnail by rememberPreference(SwipeThumbnailKey, true)
     val hidePlayerThumbnail by rememberPreference(HidePlayerThumbnailKey, false)
     val veluneCanvasEnabled by rememberPreference(VeluneCanvasKey, false)
+
     val (maxCanvasCacheSize, _) = rememberPreference(
         key = MaxCanvasCacheSizeKey,
         defaultValue = 256,

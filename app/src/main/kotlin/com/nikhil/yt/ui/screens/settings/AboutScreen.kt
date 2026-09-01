@@ -95,7 +95,7 @@ fun AboutScreen(
                 ) {
                     // Title
                     Text(
-                        text = "VELUNE",
+                        text = "VELUNE DOPED",
                         style = MaterialTheme.typography.displaySmall,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 2.sp,
@@ -128,6 +128,19 @@ fun AboutScreen(
                             fontWeight = FontWeight.SemiBold
                         )
                     }
+
+                    Spacer(Modifier.height(12.dp))
+
+                    Text(
+                        text = "Doped v${BuildConfig.VELUNE_DOPED_VERSION}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                    )
+                    Text(
+                        text = "Base Velune v${BuildConfig.VELUNE_BASE_VERSION}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                    )
                 }
 
                 Spacer(Modifier.height(24.dp))
@@ -312,7 +325,7 @@ fun AboutItemCard(
     }
 }
 fun launchUpiPayment(context: android.content.Context, upiId: String, payeeName: String) {
-    val note = "Support for Velune"
+    val note = "Support for Velune Doped"
     val uriString = "upi://pay?pa=$upiId&pn=${android.net.Uri.encode(payeeName)}&tn=${android.net.Uri.encode(note)}&cu=INR"
     val uri = android.net.Uri.parse(uriString)
     val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, uri)
@@ -359,7 +372,7 @@ fun SupportDeveloperCard(modifier: Modifier = Modifier) {
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "If you enjoy Velune, consider buying me a chai!",
+                    text = "If you enjoy Velune Doped, consider buying me a chai!",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

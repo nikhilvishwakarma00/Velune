@@ -10,7 +10,6 @@ package com.nikhil.yt.ui.menu
 
 import com.nikhil.yt.ui.component.VeluneLoader
 import android.content.Intent
-import android.content.res.Configuration
 import android.media.audiofx.AudioEffect
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -78,7 +77,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -89,6 +87,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
+import android.util.Log
 import android.widget.Toast
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.exoplayer.offline.Download
@@ -103,6 +102,9 @@ import com.nikhil.yt.LocalDownloadUtil
 import com.nikhil.yt.LocalPlayerConnection
 import com.nikhil.yt.R
 import com.nikhil.yt.constants.ArtistSeparatorsKey
+import com.nikhil.yt.constants.DeezerArlKey
+import com.nikhil.yt.constants.DeezerQualityKey
+import com.nikhil.yt.constants.EnableDeezerKey
 import com.nikhil.yt.constants.EqualizerBandLevelsMbKey
 import com.nikhil.yt.constants.EqualizerBassBoostEnabledKey
 import com.nikhil.yt.constants.EqualizerBassBoostStrengthKey
@@ -119,6 +121,7 @@ import com.nikhil.yt.playback.EqCapabilities
 import com.nikhil.yt.playback.EqProfile
 import com.nikhil.yt.playback.EqProfilesPayload
 import com.nikhil.yt.playback.EqualizerJson
+import com.nikhil.yt.deezer.Deezer
 import com.nikhil.yt.playback.ExoDownloadService
 import com.nikhil.yt.playback.queues.YouTubeQueue
 import com.nikhil.yt.ui.component.BottomSheetState
@@ -128,6 +131,9 @@ import com.nikhil.yt.ui.component.NewAction
 import com.nikhil.yt.ui.component.NewActionGrid
 import com.nikhil.yt.ui.component.TextFieldDialog
 import com.nikhil.yt.utils.rememberPreference
+import android.content.ContentValues
+import android.os.Build
+import android.provider.MediaStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlin.math.abs
@@ -158,6 +164,9 @@ fun PlayerMenu(
 
     val download by LocalDownloadUtil.current.getDownload(mediaMetadata.id)
         .collectAsState(initial = null)
+    val (enableDeezerPref) = rememberPreference(EnableDeezerKey, false)
+    val (deezerArl) = rememberPreference(DeezerArlKey, "")
+    val (deezerQuality) = rememberPreference(DeezerQualityKey, "MP3_128")
 
     val artists =
         remember(mediaMetadata.artists) {
@@ -406,11 +415,7 @@ fun PlayerMenu(
 
     Spacer(modifier = Modifier.height(16.dp))
 
-    val configuration = LocalConfiguration.current
-    val isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
-
     LazyColumn(
-        userScrollEnabled = !isPortrait,
         contentPadding = PaddingValues(
             start = 0.dp,
             top = 0.dp,
@@ -633,6 +638,68 @@ fun PlayerMenu(
                         , colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                         )
                     }
+                }
+            }
+        }
+        if (enableDeezerPref) {
+            item {
+                MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
+                    ListItem(
+                        headlineContent = { Text(text = "Download from Deezer ($deezerQuality)", color = MaterialTheme.colorScheme.primary) },
+                        leadingContent = {
+                            Icon(
+                                painter = painterResource(R.drawable.download),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                        },
+                        modifier = Modifier.clickable {
+                            if (deezerArl.isBlank()) {
+                                Toast.makeText(context, "Deezer: enter ARL in Settings → Integrations", Toast.LENGTH_LONG).show()
+                                return@clickable
+                            }
+                            coroutineScope.launch {
+                                Deezer.setLogDir(context.cacheDir)
+                                try {
+                                    Deezer.setArl(deezerArl)
+                                    val loginResult = Deezer.login()
+                                    loginResult.onFailure {
+                                        Toast.makeText(context, "Deezer: Login failed - ${it.message}", Toast.LENGTH_LONG).show()
+                                        return@launch
+                                    }
+                                    val cacheDir = context.cacheDir.resolve("deezer_tmp")
+                                    val title = mediaMetadata.title
+                                    val artist = mediaMetadata.artists.joinToString(", ") { it.name }
+                                    val result = Deezer.searchAndDownload(title, artist, cacheDir, deezerQuality)
+                                    result.onSuccess { file ->
+                                        val values = ContentValues().apply {
+                                            put(MediaStore.Audio.Media.DISPLAY_NAME, file.name)
+                                            put(MediaStore.Audio.Media.MIME_TYPE, "audio/mpeg")
+                                            put(MediaStore.Audio.Media.RELATIVE_PATH, "Music/Deezer")
+                                            put(MediaStore.Audio.Media.IS_PENDING, 1)
+                                        }
+                                        val uri = context.contentResolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, values)
+                                        if (uri != null) {
+                                            context.contentResolver.openOutputStream(uri)?.use { out ->
+                                                file.inputStream().use { it.copyTo(out) }
+                                            }
+                                            values.clear()
+                                            values.put(MediaStore.Audio.Media.IS_PENDING, 0)
+                                            context.contentResolver.update(uri, values, null, null)
+                                        }
+                                        file.delete()
+                                        Toast.makeText(context, "Saved: ${file.name} → Music/Deezer/", Toast.LENGTH_SHORT).show()
+                                        onDismiss()
+                                    }.onFailure {
+                                        Toast.makeText(context, "Deezer: ${it.message}", Toast.LENGTH_LONG).show()
+                                    }
+                                } catch (e: Exception) {
+                                    Toast.makeText(context, "Deezer: ${e.javaClass.simpleName}: ${e.message}", Toast.LENGTH_LONG).show()
+                                }
+                            }
+                        },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                    )
                 }
             }
         }

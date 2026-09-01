@@ -1,5 +1,5 @@
 [versions]
-androidGradlePlugin = "9.1.1"
+androidGradlePlugin = "9.3.0"
 annotation = "1.9.1"
 json = "20250517"
 kotlin = "2.3.10"
@@ -14,6 +14,7 @@ ksp = "2.3.6"
 jsoup = "1.22.1"
 re2j = "1.8"
 coil = "3.4.0"
+carApp = "1.7.0"
 guava = "33.5.0-jre"
 coroutinesGuava = "1.10.2"
 concurrentFutures = "1.3.0"
@@ -76,6 +77,10 @@ backdrop = { module = "io.github.kyant0:backdrop", version.ref = "backdrop" }
 media3 = { module = "androidx.media3:media3-exoplayer", version.ref = "media3" }
 media3-okhttp = { module = "androidx.media3:media3-datasource-okhttp", version.ref = "media3" }
 media3-session = { module = "androidx.media3:media3-session", version.ref = "media3" }
+car-app = { module = "androidx.car.app:app", version.ref = "carApp" }
+
+# Needed by car-app for testing
+car-app-testing = { module = "androidx.car.app:app-testing", version.ref = "carApp" }
 
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }

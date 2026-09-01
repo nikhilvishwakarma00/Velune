@@ -39,3 +39,6 @@ captures/
 *.keystore
 *.properties
 !gradle.properties
+
+# --- Local Tools ---
+/graphify-out/
