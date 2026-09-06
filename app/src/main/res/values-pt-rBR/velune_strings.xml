@@ -8,7 +8,7 @@
     <string name="no_title">Sem título</string>
     <string name="unknown_artist">Artista desconhecido</string>
     <string name="unknown_item_type">Tipo de item desconhecido</string>
-    <string name="loading_charts">Carregando mais tocadas...</string>
+    <string name="loading_charts">Loading charts…</string>
     <string name="retry_button">Tentar novamente</string>
     <string name="album_cover_desc">Capa do álbum</string>
     <string name="top_music_videos">Vídeos de música virais</string>
