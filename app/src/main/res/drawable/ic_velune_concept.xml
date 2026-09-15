@@ -3,10 +3,19 @@
     android:height="512dp"
     android:viewportWidth="100"
     android:viewportHeight="100">
+  <!-- T path -->
   <path
-      android:pathData="M25,35L50,75L75,35L55,20L48,30"
+      android:pathData="M 20,30 H 80 M 50,30 V 75"
       android:strokeLineJoin="round"
-      android:strokeWidth="14"
+      android:strokeWidth="10"
+      android:fillColor="#00000000"
+      android:strokeColor="#FFC107"
+      android:strokeLineCap="round"/>
+  <!-- M path -->
+  <path
+      android:pathData="M 25,75 V 50 L 50,65 L 75,50 V 75"
+      android:strokeLineJoin="round"
+      android:strokeWidth="8"
       android:fillColor="#00000000"
       android:strokeColor="#EAEAE0"
       android:strokeLineCap="round"/>

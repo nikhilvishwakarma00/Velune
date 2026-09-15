@@ -364,7 +364,7 @@
     <string name="custom_value">Custom value</string>
     <string name="new_library_design">New library design</string>
     <string name="new_library_design_description">Enable the new library design (may be unstable)</string>
-    <string name="velune_canvas">Velune Canvas</string>
+    <string name="velune_canvas">Towfik Music Canvas</string>
     <string name="velune_canvas_desc">Animate album artwork while playing (Powered by BetterLyrics)</string>
     <string name="show_button1_description">Toggle visibility of button 1 in Discord Rich Presence</string>
     <string name="show_button2_description">Toggle visibility of button 2 in Discord Rich Presence</string>
@@ -517,8 +517,8 @@
     <string name="restore_success">Backup restored successfully</string>
     <string name="restore_failed">Failed to restore backup</string>
     <string name="discord_integration">Discord Integration</string>
-    <string name="discord_information">Velune uses the KizzyRPC library to set your Discord account\'s status. This involves using the Discord Gateway connection, which may be considered a violation of Discord\'s TOS. However, there are no known cases of user accounts being suspended for this reason. Use at your own risk.
-Velune will only extract your token, and everything else is stored locally.</string>
+    <string name="discord_information">Towfik Music uses the KizzyRPC library to set your Discord account\'s status. This involves using the Discord Gateway connection, which may be considered a violation of Discord\'s TOS. However, there are no known cases of user accounts being suspended for this reason. Use at your own risk.
+Towfik Music will only extract your token, and everything else is stored locally.</string>
     <string name="options">Options</string>
     <string name="preview">Preview</string>
     <string name="enable_discord_rpc">Enable Rich Presence</string>
@@ -568,7 +568,7 @@ Velune will only extract your token, and everything else is stored locally.</str
     <string name="select_language">Select Language</string>
     <string name="close_dialog">Close</string>
     <string name="select_dialog">Select</string>
-    <string name="support_github">Star Velune!</string>
+    <string name="support_github">Star Towfik Music!</string>
     <!-- Update dialog -->
     <string name="new_update_available">New update available</string>
     <string name="release_notes_unavailable">Release notes are unavailable</string>
@@ -672,10 +672,10 @@ Velune will only extract your token, and everything else is stored locally.</str
     <string name="update_notification_channel_name">App Updates</string>
     <string name="update_notification_channel_desc">Notifications for new app updates</string>
     <string name="update_notification_title">Update Available</string>
-    <string name="update_notification_text">Velune %s is now available</string>
+    <string name="update_notification_text">Towfik Music %s is now available</string>
     <string name="download">Download</string>
 
-    <string name="permissions_title">Allow Velune to work best</string>
+    <string name="permissions_title">Allow Towfik Music to work best</string>
     <string name="permissions_subtitle">We use a few permissions to play and manage your music reliably. You can change these anytime in system settings.</string>
     <string name="permission_storage_title">Storage access</string>
     <string name="permission_storage_desc">Required to read your downloaded and local audio files for playback.</string>
@@ -691,7 +691,7 @@ Velune will only extract your token, and everything else is stored locally.</str
     <string name="you_might_like">You might like</string>
     <string name="refresh_suggestions">Refresh suggestions</string>
 
-    <string name="music_together">Velune Music Together</string>
+    <string name="music_together">Towfik Music Together</string>
     <string name="together_display_name">Display name</string>
     <string name="together_display_name_placeholder">Your name</string>
     <string name="together_port">Session port</string>
@@ -749,10 +749,10 @@ Velune will only extract your token, and everything else is stored locally.</str
 
     <string name="got_it">Got it</string>
     <string name="together_dont_show_again">Don\'t show this again</string>
-    <string name="together_welcome_title">Welcome to Velune Music Together</string>
+    <string name="together_welcome_title">Welcome to Towfik Music Together</string>
     <string name="together_welcome_body">Music Together lets multiple devices share a live session with a synced queue and playback.</string>
     <string name="together_welcome_host_title">Host a session</string>
-    <string name="together_welcome_host_body">Tap Start session, then share the session link. Keep Velune open in the background while hosting.</string>
+    <string name="together_welcome_host_body">Tap Start session, then share the session link. Keep Towfik Music open in the background while hosting.</string>
     <string name="together_welcome_join_title">Join from another device</string>
     <string name="together_welcome_join_body">Open the shared link, or enter code and tap Join. Your queue and playback will follow the host.</string>
     <string name="together_welcome_permissions_title">Permissions and safety</string>
