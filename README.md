@@ -39,6 +39,26 @@
 
 </div>
 
+
+<br>
+<hr>
+
+⚠️ Official Velune Notice
+
+This is the official Velune repository, maintained by Nikhil Vishwakarma.
+
+Official source code & releases:
+https://github.com/nikhilvishwakarma00/Velune
+
+Please be cautious of third-party websites or downloads using the Velune name that are not linked from this repository.
+
+In particular, https://velune.cc  is not operated or maintained by me, and I am not affiliated with that website.
+
+For your safety, download Velune only from the official GitHub releases
+
+<hr>
+<br>
+
 ## 📥 Download Now
 
 
