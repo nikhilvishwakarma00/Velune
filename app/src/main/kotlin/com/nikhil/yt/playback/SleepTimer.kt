@@ -35,8 +35,10 @@ class SleepTimer(
         sleepTimerJob?.cancel()
         sleepTimerJob = null
         if (minute == -1) {
+            triggerTime = -1L
             pauseWhenSongEnd = true
         } else {
+            pauseWhenSongEnd = false
             triggerTime = System.currentTimeMillis() + minute.minutes.inWholeMilliseconds
             sleepTimerJob =
                 scope.launch {
@@ -58,7 +60,10 @@ class SleepTimer(
         mediaItem: MediaItem?,
         reason: Int,
     ) {
-        if (pauseWhenSongEnd) {
+        if (
+            pauseWhenSongEnd &&
+            reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO
+        ) {
             pauseWhenSongEnd = false
             player.pause()
         }
