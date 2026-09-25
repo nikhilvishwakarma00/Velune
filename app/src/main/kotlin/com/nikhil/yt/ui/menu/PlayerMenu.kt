@@ -144,6 +144,7 @@ fun PlayerMenu(
     playerBottomSheetState: BottomSheetState,
     isQueueTrigger: Boolean? = false,
     onShowDetailsDialog: () -> Unit,
+    onRemoveFromQueue: (() -> Unit)? = null,
     onDismiss: () -> Unit,
 ) {
     mediaMetadata ?: return
@@ -654,6 +655,29 @@ fun PlayerMenu(
                             },
                         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                     )
+
+                    if (isQueueTrigger == true && onRemoveFromQueue != null) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(start = 56.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant,
+                        )
+
+                        ListItem(
+                            headlineContent = { Text(text = stringResource(R.string.remove_from_queue)) },
+                            leadingContent = {
+                                Icon(
+                                    painter = painterResource(R.drawable.delete),
+                                    contentDescription = null,
+                                )
+                            },
+                            modifier =
+                                Modifier.clickable {
+                                    onRemoveFromQueue()
+                                    onDismiss()
+                                },
+                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        )
+                    }
 
                     if (isQueueTrigger != true) {
                         HorizontalDivider(

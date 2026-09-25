@@ -682,6 +682,9 @@ fun Queue(
                                                                 }
                                                             }
                                                         },
+                                                        onRemoveFromQueue = {
+                                                            playerConnection.player.removeMediaItem(window.firstPeriodIndex)
+                                                        },
                                                         onDismiss = menuState::dismiss,
                                                     )
                                                 }

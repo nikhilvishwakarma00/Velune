@@ -350,7 +350,7 @@ fun SleepTimerDialog(
     initialValue: Float = 30f
 ) {
     var sleepTimerValue by remember { mutableFloatStateOf(initialValue) }
-    
+
     ActionPromptDialog(
         titleBar = {
             Row(
