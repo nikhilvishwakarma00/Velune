@@ -23,6 +23,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -76,6 +77,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -93,6 +95,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -205,6 +208,8 @@ fun Queue(
     )
 
     val snackbarHostState = remember { SnackbarHostState() }
+    var lastLockedNoticeTime by remember { mutableLongStateOf(0L) }
+    val queueIsLockedMessage = stringResource(R.string.queue_is_locked)
     var dismissJob: Job? by remember { mutableStateOf(null) }
 
     var showSleepTimerDialog by remember { mutableStateOf(false) }
@@ -772,7 +777,27 @@ fun Queue(
                         }
 
                         if (effectiveLocked) {
-                            content()
+                            Box(
+                                modifier = Modifier.pointerInput(Unit) {
+                                    detectHorizontalDragGestures { change, _ ->
+                                        change.consume()
+                                        val now = System.currentTimeMillis()
+                                        if (now - lastLockedNoticeTime > 2000L) {
+                                            lastLockedNoticeTime = now
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            coroutineScope.launch {
+                                                snackbarHostState.currentSnackbarData?.dismiss()
+                                                snackbarHostState.showSnackbar(
+                                                    message = queueIsLockedMessage,
+                                                    duration = SnackbarDuration.Short,
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            ) {
+                                content()
+                            }
                         } else {
                             SwipeToDismissBox(
                                 state = dismissBoxState,
