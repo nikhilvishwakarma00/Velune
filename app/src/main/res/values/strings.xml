@@ -228,6 +228,7 @@
     <string name="repeat_mode_one">Repeat current song</string>
     <string name="repeat_mode_all">Repeat queue</string>
     <!-- Queue Title -->
+    <string name="queue_is_locked">Queue is locked. Tap the lock icon to reorder or remove tracks</string>
     <string name="queue_all_songs">All songs</string>
     <string name="queue_searched_songs">Searched songs</string>
     <string name="queue_continue_playing">Continue Playing</string>
