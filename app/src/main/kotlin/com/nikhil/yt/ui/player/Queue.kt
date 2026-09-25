@@ -67,6 +67,7 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
@@ -103,6 +104,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -191,6 +193,15 @@ fun Queue(
     if (selection) {
         BackHandler {
             selection = false
+            selectedSongs.clear()
+            selectedItems.clear()
+        }
+    }
+
+    LaunchedEffect(selection) {
+        if (!selection) {
+            selectedSongs.clear()
+            selectedItems.clear()
         }
     }
 
@@ -581,6 +592,97 @@ fun Queue(
                     }
                 )
 
+                AnimatedVisibility(
+                    visible = selection,
+                    enter = fadeIn() + expandVertically(),
+                    exit = fadeOut() + shrinkVertically(),
+                ) {
+                    Surface(
+                        color = backgroundColor,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 4.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            val count = selectedSongs.size
+                            IconButton(
+                                onClick = {
+                                    selection = false
+                                    selectedSongs.clear()
+                                    selectedItems.clear()
+                                },
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.close),
+                                    contentDescription = null,
+                                )
+                            }
+                            Text(
+                                text = stringResource(R.string.elements_selected, count),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(start = 8.dp)
+                            )
+                            IconButton(
+                                onClick = {
+                                    if (count == mutableQueueWindows.size) {
+                                        selectedSongs.clear()
+                                        selectedItems.clear()
+                                    } else {
+                                        queueWindows
+                                            .filter { it.mediaItem.metadata!! !in selectedSongs }
+                                            .forEach {
+                                                selectedSongs.add(it.mediaItem.metadata!!)
+                                                selectedItems.add(it)
+                                            }
+                                    }
+                                },
+                            ) {
+                                Icon(
+                                    painter = painterResource(
+                                        if (count == mutableQueueWindows.size) {
+                                            R.drawable.deselect
+                                        } else {
+                                            R.drawable.select_all
+                                        }
+                                    ),
+                                    contentDescription = null,
+                                )
+                            }
+
+                            IconButton(
+                                onClick = {
+                                    menuState.show {
+                                        SelectionMediaMetadataMenu(
+                                            songSelection = selectedSongs,
+                                            onDismiss = menuState::dismiss,
+                                            clearAction = {
+                                                selectedSongs.clear()
+                                                selectedItems.clear()
+                                                selection = false
+                                            },
+                                            currentItems = selectedItems,
+                                        )
+                                    }
+                                },
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.more_vert),
+                                    contentDescription = null,
+                                    tint = LocalContentColor.current,
+                                )
+                            }
+                        }
+                    }
+                }
+
                 LazyColumn(
                     state = lazyListState,
                     contentPadding =
@@ -887,95 +989,6 @@ fun Queue(
                         }
                     }
                 }
-            }
-        }
-
-        // Old header hidden - now using sticky header at top of queue
-        Column(
-            modifier =
-            Modifier
-                .height(0.dp)
-        ) {
-
-            AnimatedVisibility(
-                visible = selection,
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically(),
-            ) {
-                Row(
-                    modifier =
-                    Modifier
-                        .height(48.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    val count = selectedSongs.size
-                    IconButton(
-                        onClick = {
-                            selection = false
-                        },
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.close),
-                            contentDescription = null,
-                        )
-                    }
-                    Text(
-                        text = stringResource(R.string.elements_selected, count),
-                        modifier = Modifier.weight(1f)
-                    )
-                    IconButton(
-                        onClick = {
-                            if (count == mutableQueueWindows.size) {
-                                selectedSongs.clear()
-                                selectedItems.clear()
-                            } else {
-                                queueWindows
-                                    .filter { it.mediaItem.metadata!! !in selectedSongs }
-                                    .forEach {
-                                        selectedSongs.add(it.mediaItem.metadata!!)
-                                        selectedItems.add(it)
-                                    }
-                            }
-                        },
-                    ) {
-                        Icon(
-                            painter =
-                            painterResource(
-                                if (count == mutableQueueWindows.size) {
-                                    R.drawable.deselect
-                                } else {
-                                    R.drawable.select_all
-                                },
-                            ),
-                            contentDescription = null,
-                        )
-                    }
-
-                    IconButton(
-                        onClick = {
-                            menuState.show {
-                                SelectionMediaMetadataMenu(
-                                    songSelection = selectedSongs,
-                                    onDismiss = menuState::dismiss,
-                                    clearAction = {
-                                        selectedSongs.clear()
-                                        selectedItems.clear()
-                                    },
-                                    currentItems = selectedItems,
-                                )
-                            }
-                        },
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.more_vert),
-                            contentDescription = null,
-                            tint = LocalContentColor.current,
-                        )
-                    }
-                }
-            }
-            if (pureBlack) {
-                    HorizontalDivider()
             }
         }
 
