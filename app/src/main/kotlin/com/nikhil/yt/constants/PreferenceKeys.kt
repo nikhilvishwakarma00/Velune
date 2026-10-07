@@ -136,6 +136,13 @@ val EqualizerVirtualizerStrengthKey = intPreferencesKey("equalizerVirtualizerStr
 val EqualizerSelectedProfileIdKey = stringPreferencesKey("equalizerSelectedProfileId")
 val EqualizerCustomProfilesJsonKey = stringPreferencesKey("equalizerCustomProfilesJson")
 
+val EightDAudioEnabledKey = booleanPreferencesKey("eightDAudioEnabled")
+val EightDAudioSpeedHzKey = floatPreferencesKey("eightDAudioSpeedHz")
+val EightDAudioIntensityKey = floatPreferencesKey("eightDAudioIntensity")
+val EightDAudioWidthKey = floatPreferencesKey("eightDAudioWidth")
+val EightDAudioClockwiseKey = booleanPreferencesKey("eightDAudioClockwise")
+val EightDAudioSmoothnessKey = floatPreferencesKey("eightDAudioSmoothness")
+
 val MaxImageCacheSizeKey = intPreferencesKey("maxImageCacheSize")
 val SmartTrimmerKey = booleanPreferencesKey("smartTrimmer")
 val MaxSongCacheSizeKey = intPreferencesKey("maxSongCacheSize")

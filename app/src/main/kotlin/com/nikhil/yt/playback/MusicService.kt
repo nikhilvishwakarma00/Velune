@@ -94,6 +94,12 @@ import com.nikhil.yt.constants.AutoLoadMoreKey
 import com.nikhil.yt.constants.AutoSkipNextOnErrorKey
 import com.nikhil.yt.constants.AutoStartOnBluetoothKey
 import com.nikhil.yt.constants.DiscordTokenKey
+import com.nikhil.yt.constants.EightDAudioClockwiseKey
+import com.nikhil.yt.constants.EightDAudioEnabledKey
+import com.nikhil.yt.constants.EightDAudioIntensityKey
+import com.nikhil.yt.constants.EightDAudioSmoothnessKey
+import com.nikhil.yt.constants.EightDAudioSpeedHzKey
+import com.nikhil.yt.constants.EightDAudioWidthKey
 import com.nikhil.yt.constants.EnableDiscordRPCKey
 import com.nikhil.yt.constants.EnableLastFMScrobblingKey
 import com.nikhil.yt.constants.EqualizerBandLevelsMbKey
@@ -357,6 +363,12 @@ class MusicService :
     lateinit var player: ExoPlayer
     private lateinit var mediaSession: MediaLibrarySession
 
+    /**
+     * Real-time 8D spatial audio stage. Lives in the ExoPlayer audio processor
+     * chain so it applies to all Velune playback and stacks with the EQ.
+     */
+    private val eightDSpatialAudioProcessor = EightDSpatialAudioProcessor()
+
     private var isAudioEffectSessionOpened = false
     private var openedAudioSessionId: Int? = null
     val eqCapabilities = MutableStateFlow<EqCapabilities?>(null)
@@ -597,10 +609,11 @@ class MusicService :
             val repeatMode = prefs[RepeatModeKey] ?: REPEAT_MODE_OFF
             val volume = (prefs[PlayerVolumeKey] ?: 1f).coerceIn(0f, 1f)
             val offload = prefs[AudioOffload] ?: false
+            val eightDEnabled = prefs[EightDAudioEnabledKey] ?: EightDAudioDefaults.ENABLED
             withContext(Dispatchers.Main) {
                 player.repeatMode = repeatMode
                 playerVolume.value = volume
-                updateAudioOffload(offload)
+                updateAudioOffload(offload && !eightDEnabled)
             }
         }
 
@@ -694,12 +707,17 @@ class MusicService :
                 }
             }
 
-        dataStore.data
-            .map { it[AudioOffload] ?: false }
+        combine(
+            dataStore.data.map { it[AudioOffload] ?: false }.distinctUntilChanged(),
+            dataStore.data.map { it[EightDAudioEnabledKey] ?: EightDAudioDefaults.ENABLED }
+                .distinctUntilChanged(),
+        ) { offload, eightDEnabled -> offload to eightDEnabled }
             .distinctUntilChanged()
-            .collectLatest(scope) { enabled ->
-                updateAudioOffload(enabled)
-                if (enabled) {
+            .collectLatest(scope) { (offload, eightDEnabled) ->
+                // Audio offload bypasses the ExoPlayer audio processor chain, so it
+                // must stay off while the real-time 8D spatial stage is active.
+                updateAudioOffload(offload && !eightDEnabled)
+                if (offload && !eightDEnabled) {
                     val skipSilenceEnabled = dataStore.get(SkipSilenceKey, false)
                     if (skipSilenceEnabled) {
                         dataStore.edit { it[SkipSilenceKey] = false }
@@ -710,6 +728,27 @@ class MusicService :
                         dataStore.edit { it[AudioCrossfadeDurationKey] = 0 }
                     }
                 }
+            }
+
+        // Real-time 8D spatial audio: push preference changes into the DSP stage.
+        dataStore.data
+            .map { prefs ->
+                EightDSpatialAudioProcessor.Params(
+                    enabled = prefs[EightDAudioEnabledKey] ?: EightDAudioDefaults.ENABLED,
+                    speedHz = (prefs[EightDAudioSpeedHzKey] ?: EightDAudioDefaults.SPEED_HZ)
+                        .coerceIn(EightDAudioDefaults.SPEED_MIN_HZ, EightDAudioDefaults.SPEED_MAX_HZ),
+                    intensity = (prefs[EightDAudioIntensityKey] ?: EightDAudioDefaults.INTENSITY)
+                        .coerceIn(0f, 1f),
+                    width = (prefs[EightDAudioWidthKey] ?: EightDAudioDefaults.WIDTH)
+                        .coerceIn(0f, 1f),
+                    clockwise = prefs[EightDAudioClockwiseKey] ?: EightDAudioDefaults.CLOCKWISE,
+                    smoothness = (prefs[EightDAudioSmoothnessKey] ?: EightDAudioDefaults.SMOOTHNESS)
+                        .coerceIn(0f, 1f),
+                )
+            }
+            .distinctUntilChanged()
+            .collectLatest(scope) { params ->
+                eightDSpatialAudioProcessor.params = params
             }
         
         dataStore.data
@@ -4291,6 +4330,8 @@ class MusicService :
                             150.toShort(),
                         ),
                         SonicAudioProcessor(),
+                        // 8D spatial stage: last in chain, real-time, stacks with EQ.
+                        eightDSpatialAudioProcessor,
                     ),
                 ).build()
         }

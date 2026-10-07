@@ -164,6 +164,7 @@ Experience lyrics like never before:
 - Loudness Normalization (EBU R128)  
 - Tempo & Pitch Control  
 - System EQ Integration  
+- **8D Spatial Audio** — real-time headphone surround effect: the music continuously orbits around your head (front → right → back → left) using constant-power panning, interaural time delay, and behind-the-head tonal cues. Adjustable rotation speed, intensity, spatial width, direction, and smoothness from the player menu (Details → 8D Audio). Stacks with the equalizer.  
 
 ### 🎨 UI & Discovery
 - Material You (Dynamic Colors)  

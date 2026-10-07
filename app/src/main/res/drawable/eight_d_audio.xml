@@ -1,0 +1,20 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24.0dip"
+    android:height="24.0dip"
+    android:viewportWidth="960.0"
+    android:viewportHeight="960.0">
+    <!-- Orbit ring suggesting sound rotating around the listener -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeWidth="70"
+        android:strokeColor="@android:color/white"
+        android:pathData="M180,480a300,300 0 0,1 600,0a300,300 0 0,1 -600,0" />
+    <!-- Rotation arrowhead -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M780,330l96,26l-88,50z" />
+    <!-- Listener dot at the center -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M480,440m-44,0a44,44 0 1,0 88,0a44,44 0 1,0 -88,0" />
+</vector>
