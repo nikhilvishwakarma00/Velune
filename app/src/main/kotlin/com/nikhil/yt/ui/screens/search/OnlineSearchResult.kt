@@ -248,8 +248,8 @@ fun OnlineSearchResult(
                 }
 
                 items(
-                    items = summary.items,
-                    key = { "${summary.title}/${it.id}/${summary.items.indexOf(it)}" },
+                    items = summary.items.distinctBy { it.id },
+                    key = { "${index}_${summary.title}/${it.id}" },
                     itemContent = ytItemContent,
                 )
 
