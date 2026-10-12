@@ -20,7 +20,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-    applicationId = "com.nikhil.yt"
+    applicationId = "com.towfik.music"
         minSdk = 26
         targetSdk = 36
         versionCode = 10
@@ -130,7 +130,7 @@ android {
     }
 
     androidResources {
-        generateLocaleConfig = true
+        generateLocaleConfig = false
     }
 
     packaging {
