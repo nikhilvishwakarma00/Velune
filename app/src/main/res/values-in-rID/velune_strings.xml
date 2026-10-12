@@ -8,7 +8,7 @@
     <string name="no_title">Tidak ada judul</string>
     <string name="unknown_artist">Artis tidak dikenal</string>
     <string name="unknown_item_type">Jenis item tidak diketahui</string>
-    <string name="loading_charts">Memuat diagram...</string>
+    <string name="loading_charts">Loading charts…</string>
     <string name="retry_button">Mencoba kembali</string>
     <string name="album_cover_desc">Sampul album</string>
     <string name="top_music_videos">Video musik teratas</string>
