@@ -783,4 +783,13 @@ Velune will only extract your token, and everything else is stored locally.</str
     <string name="token_copied">Token copied to clipboard</string>
     <string name="no_visitor_data">No visitor data available. Tokens cannot be generated.</string>
     <string name="extracting_from_url">Extracting tokens from URL…</string>
+
+    <!-- Re-download after restore -->
+    <string name="redownload_title">Re-download songs</string>
+    <plurals name="redownload_message">
+        <item quantity="one">Your backup had %d downloaded song. Download it again now?</item>
+        <item quantity="other">Your backup had %d downloaded songs. Download them again now?</item>
+    </plurals>
+    <string name="redownload_all">Download all</string>
+    <string name="not_now">Not now</string>
 </resources>

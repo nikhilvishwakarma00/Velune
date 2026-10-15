@@ -205,6 +205,7 @@ import com.nikhil.yt.ui.screens.navigationBuilder
 import com.nikhil.yt.ui.screens.search.LocalSearchScreen
 import com.nikhil.yt.ui.screens.search.OnlineSearchScreen
 import com.nikhil.yt.ui.screens.settings.DarkMode
+import com.nikhil.yt.ui.screens.settings.RedownloadFromBackupDialog
 import com.nikhil.yt.ui.screens.settings.DiscordPresenceManager
 import com.nikhil.yt.ui.screens.settings.NavigationTab
 import com.nikhil.yt.ui.theme.VeluneTheme
@@ -215,6 +216,7 @@ import com.nikhil.yt.ui.utils.appBarScrollBehavior
 import com.nikhil.yt.ui.utils.backToMain
 import com.nikhil.yt.ui.utils.resetHeightOffset
 import com.nikhil.yt.utils.SyncUtils
+import com.nikhil.yt.utils.BackupDownloads
 import com.nikhil.yt.utils.dataStore
 import com.nikhil.yt.utils.get
 import com.nikhil.yt.utils.rememberEnumPreference
@@ -937,6 +939,29 @@ class MainActivity : ComponentActivity() {
                     }
 
                     var showStarDialog by remember { mutableStateOf(false) }
+
+                    // First launch after a restore: offer to download the backup's songs again.
+                    var redownloadCount by remember { mutableStateOf(0) }
+                    LaunchedEffect(Unit) {
+                        if (intent.getBooleanExtra(BackupDownloads.EXTRA_OFFER_REDOWNLOAD, false)) {
+                            intent.removeExtra(BackupDownloads.EXTRA_OFFER_REDOWNLOAD)
+                            redownloadCount = withContext(Dispatchers.IO) {
+                                BackupDownloads.readPending(this@MainActivity).size
+                            }
+                        }
+                    }
+                    if (redownloadCount > 0) {
+                        RedownloadFromBackupDialog(
+                            count = redownloadCount,
+                            onDismiss = { redownloadCount = 0 },
+                            onConfirm = {
+                                redownloadCount = 0
+                                coroutineScope.launch(Dispatchers.IO) {
+                                    BackupDownloads.redownloadPending(this@MainActivity, database, downloadUtil)
+                                }
+                            },
+                        )
+                    }
 
                     LaunchedEffect(Unit) {
                         delay(3000)

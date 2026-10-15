@@ -64,6 +64,13 @@ import com.nikhil.yt.ui.menu.LoadingScreen
 import com.nikhil.yt.ui.utils.backToMain
 import com.nikhil.yt.viewmodels.BackupRestoreViewModel
 import kotlinx.coroutines.delay
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.res.pluralStringResource
+import com.nikhil.yt.LocalDatabase
+import com.nikhil.yt.LocalDownloadUtil
+import com.nikhil.yt.utils.BackupDownloads
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -98,7 +105,26 @@ fun BackupAndRestore(
     
     val backupRestoreProgress by viewModel.backupRestoreProgress.collectAsState()
     val context = LocalContext.current
+    val database = LocalDatabase.current
+    val downloadUtil = LocalDownloadUtil.current
     val coroutineScope = rememberCoroutineScope()
+    // Songs the last restored backup had downloaded; offered until re-downloaded.
+    var pendingRedownloads by remember { mutableStateOf(BackupDownloads.readPending(context)) }
+    var showRedownloadDialog by remember { mutableStateOf(false) }
+
+    if (showRedownloadDialog) {
+        RedownloadFromBackupDialog(
+            count = pendingRedownloads.size,
+            onDismiss = { showRedownloadDialog = false },
+            onConfirm = {
+                showRedownloadDialog = false
+                pendingRedownloads = emptyList()
+                coroutineScope.launch(Dispatchers.IO) {
+                    BackupDownloads.redownloadPending(context, database, downloadUtil)
+                }
+            },
+        )
+    }
     
     val backupLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
@@ -198,6 +224,16 @@ fun BackupAndRestore(
                 )
             }
             
+            if (pendingRedownloads.isNotEmpty()) {
+                item {
+                    BackupSettingsItemStyle(
+                        icon = painterResource(R.drawable.download),
+                        title = stringResource(R.string.redownload_title) + " (${pendingRedownloads.size})",
+                        onClick = { showRedownloadDialog = true }
+                    )
+                }
+            }
+
             item {
                 BackupSettingsItemStyle(
                     icon = painterResource(R.drawable.playlist_add),
@@ -273,4 +309,24 @@ private fun BackupSettingsItemStyle(
             color = MaterialTheme.colorScheme.onSurface
         )
     }
+}
+
+@Composable
+fun RedownloadFromBackupDialog(
+    count: Int,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = { Icon(painterResource(R.drawable.download), null) },
+        title = { Text(stringResource(R.string.redownload_title)) },
+        text = { Text(pluralStringResource(R.plurals.redownload_message, count, count)) },
+        confirmButton = {
+            TextButton(onClick = onConfirm) { Text(stringResource(R.string.redownload_all)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.not_now)) }
+        },
+    )
 }

@@ -25,6 +25,8 @@ import com.nikhil.yt.MainActivity
 import com.nikhil.yt.R
 import com.nikhil.yt.db.InternalDatabase
 import com.nikhil.yt.db.MusicDatabase
+import com.nikhil.yt.playback.DownloadUtil
+import com.nikhil.yt.utils.BackupDownloads
 import com.nikhil.yt.db.entities.ArtistEntity
 import com.nikhil.yt.db.entities.Song
 import com.nikhil.yt.db.entities.SongEntity
@@ -144,6 +146,7 @@ internal fun readCsvRecords(reader: Reader): Sequence<List<String>> =
 @HiltViewModel
 class BackupRestoreViewModel @Inject constructor(
     val database: MusicDatabase,
+    private val downloadUtil: DownloadUtil,
 ) : ViewModel() {
     private val _backupRestoreProgress = MutableStateFlow<BackupRestoreProgressUi?>(null)
     val backupRestoreProgress: StateFlow<BackupRestoreProgressUi?> = _backupRestoreProgress.asStateFlow()
@@ -204,6 +207,11 @@ class BackupRestoreViewModel @Inject constructor(
                         emit(context.getString(R.string.backup_step_export_settings), indeterminate = true)
                         zipStream.putNextEntry(ZipEntry(SETTINGS_XML_FILENAME))
                         writeSettingsToXml(context, zipStream)
+                        zipStream.closeEntry()
+
+                        // Audio files aren't backed up; the list lets a restore offer to download them again.
+                        zipStream.putNextEntry(ZipEntry(BackupDownloads.ENTRY))
+                        zipStream.write(BackupDownloads.encode(BackupDownloads.completedIds(downloadUtil)).toByteArray())
                         zipStream.closeEntry()
                         completedUnits++
 
@@ -284,6 +292,7 @@ class BackupRestoreViewModel @Inject constructor(
                 val restoreEntries =
                     entryNames.filter { name ->
                         name == SETTINGS_XML_FILENAME ||
+                            name == BackupDownloads.ENTRY ||
                             name == SETTINGS_FILENAME ||
                             name == InternalDatabase.DB_NAME ||
                             name == "${InternalDatabase.DB_NAME}-wal" ||
@@ -318,6 +327,9 @@ class BackupRestoreViewModel @Inject constructor(
                                 continue
                             }
                             when (name) {
+                                BackupDownloads.ENTRY -> {
+                                    BackupDownloads.savePending(context, zip.bufferedReader().readText())
+                                }
                                 SETTINGS_XML_FILENAME -> {
                                     emit(context.getString(R.string.restore_step_restoring_settings), indeterminate = true)
                                     restoreSettingsFromXml(context, zip)
@@ -364,7 +376,10 @@ class BackupRestoreViewModel @Inject constructor(
                 try { context.filesDir.resolve(PERSISTENT_QUEUE_FILE).delete() } catch (_: Exception) {}
 
                 _backupRestoreProgress.value = null
-                context.startActivity(Intent(context, MainActivity::class.java))
+                context.startActivity(
+                    Intent(context, MainActivity::class.java)
+                        .putExtra(BackupDownloads.EXTRA_OFFER_REDOWNLOAD, BackupDownloads.readPending(context).isNotEmpty()),
+                )
                 exitProcess(0)
             } catch (e: Exception) {
                 reportException(e)
