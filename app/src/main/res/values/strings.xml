@@ -731,6 +731,7 @@ Velune will only extract your token, and everything else is stored locally.</str
     <string name="together_connection_timed_out">Connection timed out</string>
     <string name="together_session_not_found">Session not found</string>
     <string name="together_server_error">Server error, please try again later</string>
+    <string name="together_port_unavailable">Could not start the session on port %1$d. Try another port.</string>
     <string name="leave">Leave</string>
     <string name="join">Join</string>
     <string name="joined">Joined</string>

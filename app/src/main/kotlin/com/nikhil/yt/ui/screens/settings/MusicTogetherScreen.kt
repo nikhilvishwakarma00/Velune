@@ -183,8 +183,20 @@ fun MusicTogetherScreen(
     var showPortDialog by rememberSaveable { mutableStateOf(false) }
     var showJoinDialog by rememberSaveable { mutableStateOf(false) }
 
-    val hostingOnline = sessionState as? TogetherSessionState.HostingOnline
-    val onlineParticipants = hostingOnline?.roomState?.participants.orEmpty()
+    // LAN and online hosts both get the participants card (approve / kick / ban).
+    val hostedRoomState =
+        when (val state = sessionState) {
+            is TogetherSessionState.Hosting -> state.roomState
+            is TogetherSessionState.HostingOnline -> state.roomState
+            else -> null
+        }
+    val hostedSettings =
+        when (val state = sessionState) {
+            is TogetherSessionState.Hosting -> state.settings
+            is TogetherSessionState.HostingOnline -> state.settings
+            else -> null
+        }
+    val onlineParticipants = hostedRoomState?.participants.orEmpty()
     var confirmKickParticipantId by rememberSaveable { mutableStateOf<String?>(null) }
     var confirmBanParticipantId by rememberSaveable { mutableStateOf<String?>(null) }
     val confirmKickName = onlineParticipants.firstOrNull { it.id == confirmKickParticipantId }?.name
@@ -387,10 +399,10 @@ fun MusicTogetherScreen(
                 .padding(top = 4.dp, bottom = 12.dp),
         )
 
-        if (hostingOnline?.roomState != null && isHostRole) {
+        if (hostedRoomState != null && isHostRole) {
             OnlineParticipantsCard(
-                participants = hostingOnline.roomState.participants,
-                hostApprovalEnabled = hostingOnline.settings.requireHostApprovalToJoin,
+                participants = hostedRoomState.participants,
+                hostApprovalEnabled = hostedSettings?.requireHostApprovalToJoin == true,
                 onApprove = { participantId, approved ->
                     playerConnection?.service?.approveTogetherParticipant(participantId, approved)
                 },

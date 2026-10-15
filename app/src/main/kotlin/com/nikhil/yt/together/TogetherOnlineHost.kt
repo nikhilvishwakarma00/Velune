@@ -19,6 +19,7 @@ import io.ktor.websocket.close
 import io.ktor.websocket.readText
 import io.ktor.websocket.send
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -28,6 +29,7 @@ import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @Immutable
 sealed class TogetherOnlineHostState {
@@ -81,10 +83,11 @@ class TogetherOnlineHost(
         val participantId: String,
         val clientId: String,
         val name: String,
-        var pending: Boolean,
+        val pending: Boolean,
     )
 
-    private val guests = LinkedHashMap<String, Guest>()
+    // Written by the network loop, read by broadcasts and host actions on other threads.
+    private val guests = ConcurrentHashMap<String, Guest>()
 
     @Volatile
     private var lastParticipants: List<TogetherParticipant> = emptyList()
@@ -140,7 +143,7 @@ class TogetherOnlineHost(
         val trimmed = url.trim()
         return when {
             trimmed.startsWith("ws://") -> "wss://${trimmed.removePrefix("ws://")}"
-            trimmed.startsWith("wss://") -> "ws://${trimmed.removePrefix("wss://")}"
+            // Never fall back from wss to ws: that would send the session key and token unencrypted.
             else -> null
         }
     }
@@ -197,11 +200,13 @@ class TogetherOnlineHost(
                     ),
                 )
             }
-            guest.pending = false
+            guests.remove(participantId)
+            rebuildParticipantsSnapshot()
+            onEvent?.invoke(TogetherServerEvent.ParticipantLeft(participantId, "Not approved"))
             return
         }
 
-        guest.pending = false
+        guests[participantId] = guest.copy(pending = false)
         runCatching {
             session?.send(
                 TogetherJson.json.encodeToString(
@@ -313,7 +318,8 @@ class TogetherOnlineHost(
                         val message =
                             runCatching { TogetherJson.json.decodeFromString(TogetherMessage.serializer(), text) }
                                 .getOrElse {
-                                    onEvent?.invoke(TogetherServerEvent.Error("Failed to decode message", it))
+                                    // Skip messages we can't read (e.g. from a newer server) instead of ending the session.
+                                    Timber.tag("Together").w(it, "dropping undecodable message")
                                     continue
                                 }
 

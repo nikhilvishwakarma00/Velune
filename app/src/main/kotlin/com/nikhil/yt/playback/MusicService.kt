@@ -409,6 +409,7 @@ class MusicService :
     private var togetherOnlineConnectJob: Job? = null
     private var togetherClientEventsJob: Job? = null
     private var togetherHeartbeatJob: Job? = null
+    private var togetherHostEventsJob: Job? = null
     private var togetherClock: com.nikhil.yt.together.TogetherClock? = null
     private var togetherSelfParticipantId: String? = null
     private var togetherLastAppliedQueueHash: String? = null
@@ -2024,13 +2025,22 @@ class MusicService :
                     initialSettings = settings,
                 )
 
-            server.onEvent = { event ->
-                ioScope.launch(SilentHandler) {
-                    handleTogetherHostEvent(event) { server.currentSettings() }
-                }
-            }
+            server.onEvent = startTogetherHostEvents { server.currentSettings() }
 
-            server.start(port)
+            try {
+                server.start(port)
+            } catch (e: Exception) {
+                // e.g. port already in use: say so instead of silently staying idle.
+                reportException(e)
+                scope.launch(SilentHandler) {
+                    togetherSessionState.value =
+                        com.nikhil.yt.together.TogetherSessionState.Error(
+                            message = getString(R.string.together_port_unavailable, port),
+                            recoverable = true,
+                        )
+                }
+                return@launch
+            }
             togetherServer = server
 
             scope.launch(SilentHandler) {
@@ -2158,11 +2168,7 @@ class MusicService :
                     bearerToken = togetherToken,
                 )
 
-            onlineHost.onEvent = { event ->
-                ioScope.launch(SilentHandler) {
-                    handleTogetherHostEvent(event) { onlineHost.currentSettings() }
-                }
-            }
+            onlineHost.onEvent = startTogetherHostEvents { onlineHost.currentSettings() }
 
             togetherOnlineHost = onlineHost
 
@@ -2684,16 +2690,20 @@ class MusicService :
     }
 
     fun kickTogetherParticipant(participantId: String, reason: String? = null) {
-        val onlineHost = togetherOnlineHost ?: return
+        val server = togetherServer
+        val onlineHost = togetherOnlineHost
         ioScope.launch(SilentHandler) {
-            onlineHost.kickParticipant(participantId, reason)
+            server?.kickParticipant(participantId, reason)
+            onlineHost?.kickParticipant(participantId, reason)
         }
     }
 
     fun banTogetherParticipant(participantId: String, reason: String? = null) {
-        val onlineHost = togetherOnlineHost ?: return
+        val server = togetherServer
+        val onlineHost = togetherOnlineHost
         ioScope.launch(SilentHandler) {
-            onlineHost.banParticipant(participantId, reason)
+            server?.banParticipant(participantId, reason)
+            onlineHost?.banParticipant(participantId, reason)
         }
     }
 
@@ -2750,6 +2760,29 @@ class MusicService :
             return
         }
         client.requestAddTrack(state.sessionId, track, mode)
+    }
+
+    /** Guest requests are applied one at a time in arrival order (e.g. "add track" before "seek to it"). */
+    private fun startTogetherHostEvents(
+        currentSettings: suspend () -> com.nikhil.yt.together.TogetherRoomSettings,
+    ): (com.nikhil.yt.together.TogetherServerEvent) -> Unit {
+        val events = kotlinx.coroutines.channels.Channel<com.nikhil.yt.together.TogetherServerEvent>(
+            kotlinx.coroutines.channels.Channel.UNLIMITED,
+        )
+        togetherHostEventsJob?.cancel()
+        togetherHostEventsJob =
+            ioScope.launch(SilentHandler) {
+                for (event in events) {
+                    try {
+                        handleTogetherHostEvent(event, currentSettings)
+                    } catch (e: kotlinx.coroutines.CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        reportException(e)
+                    }
+                }
+            }
+        return { event -> events.trySend(event) }
     }
 
     private suspend fun handleTogetherHostEvent(
@@ -2936,10 +2969,10 @@ class MusicService :
         val sentAt = state.sentAtElapsedRealtimeMs
         if (sentAt > 0L && lastSentAt > 0L && sentAt <= lastSentAt) return
 
-        val offset = if (togetherIsOnlineSession) 0L else (togetherClock?.snapshot()?.estimatedOffsetMs ?: 0L)
-        val correctedSentAt = sentAt + offset
         val estimatedOnlineLatency = if (togetherIsOnlineSession) 1200L else 0L
-        val delta = if (togetherIsOnlineSession) estimatedOnlineLatency else (now - correctedSentAt).coerceAtLeast(0L)
+        // LAN: time since the host stamped this state, in our clock. Capped so a bad estimate can't skip the song.
+        val lanDelta = togetherClock?.toLocalElapsed(sentAt)?.let { (now - it).coerceIn(0L, 5_000L) } ?: 0L
+        val delta = if (togetherIsOnlineSession) estimatedOnlineLatency else lanDelta
         val targetPos =
             if (state.isPlaying) (state.positionMs + delta).coerceAtLeast(0L) else state.positionMs.coerceAtLeast(0L)
 
@@ -3053,6 +3086,9 @@ class MusicService :
 
         togetherHeartbeatJob?.cancel()
         togetherHeartbeatJob = null
+
+        togetherHostEventsJob?.cancel()
+        togetherHostEventsJob = null
 
         togetherClock = null
         togetherSelfParticipantId = null

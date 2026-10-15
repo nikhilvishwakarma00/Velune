@@ -25,6 +25,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import timber.log.Timber
 
 sealed interface TogetherServerEvent {
     data class JoinRequested(
@@ -76,6 +77,7 @@ class TogetherServer(
     )
 
     private val clients = ConcurrentHashMap<String, Client>()
+    private val bannedClientIds = ConcurrentHashMap.newKeySet<String>()
 
     var onEvent: ((TogetherServerEvent) -> Unit)? = null
 
@@ -159,6 +161,24 @@ class TogetherServer(
                 ),
             ),
         )
+    }
+
+    suspend fun kickParticipant(participantId: String, reason: String?) {
+        val client = clients[participantId] ?: return
+        removeClient(client, KickParticipant(sessionId = sessionId, participantId = participantId, reason = reason))
+    }
+
+    /** Kicks the guest and refuses that device (by client id) for the rest of the session. */
+    suspend fun banParticipant(participantId: String, reason: String?) {
+        val client = clients[participantId] ?: return
+        bannedClientIds += client.clientId
+        removeClient(client, BanParticipant(sessionId = sessionId, participantId = participantId, reason = reason))
+    }
+
+    // Closing the socket ends handleClient, whose finally removes the guest and reports ParticipantLeft.
+    private suspend fun removeClient(client: Client, notice: TogetherMessage) {
+        runCatching { client.session.send(TogetherJson.json.encodeToString(TogetherMessage.serializer(), notice)) }
+        runCatching { client.session.close(CloseReason(CloseReason.Codes.NORMAL, "Removed by host")) }
     }
 
     suspend fun broadcastRoomState(state: TogetherRoomState) {
@@ -264,6 +284,17 @@ class TogetherServer(
             return
         }
 
+        if (hello.clientId in bannedClientIds) {
+            send(
+                TogetherJson.json.encodeToString(
+                    TogetherMessage.serializer(),
+                    ServerError(sessionId = hello.sessionId, message = "Banned"),
+                ),
+            )
+            close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "Banned"))
+            return
+        }
+
         val participantId = UUID.randomUUID().toString()
         val isPending = mutex.withLock { settings.requireHostApprovalToJoin }
 
@@ -309,7 +340,8 @@ class TogetherServer(
                 val message =
                     runCatching { TogetherJson.json.decodeFromString(TogetherMessage.serializer(), text) }
                         .getOrElse {
-                            onEvent?.invoke(TogetherServerEvent.Error("Failed to decode message", it))
+                            // One guest's bad message must not end the room for everyone.
+                            Timber.tag("Together").w(it, "dropping undecodable message from $participantId")
                             continue
                         }
 
@@ -347,7 +379,8 @@ class TogetherServer(
                 }
             }
         } catch (t: Throwable) {
-            onEvent?.invoke(TogetherServerEvent.Error("Client loop failed", t))
+            // A guest dropping off the network only removes that guest (below).
+            Timber.tag("Together").w(t, "guest $participantId connection failed")
         } finally {
             clients.remove(participantId)
             onEvent?.invoke(TogetherServerEvent.ParticipantLeft(participantId, "Disconnected"))

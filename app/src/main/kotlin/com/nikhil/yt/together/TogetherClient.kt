@@ -20,16 +20,19 @@ import io.ktor.websocket.readText
 import io.ktor.websocket.send
 import java.util.UUID
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 sealed interface TogetherClientEvent {
     data class Welcome(
@@ -110,6 +113,8 @@ class TogetherClient(
     private var session: WebSocketSession? = null
     private var loopJob: Job? = null
     private var selfParticipantId: String? = null
+    // One queue + one sender keeps requests in order (e.g. "add track" then "seek to it").
+    private val outgoing = Channel<TogetherMessage>(Channel.UNLIMITED)
     private val clientId = clientId.trim().ifBlank { UUID.randomUUID().toString() }.take(64)
     private val normalizedBearerToken: String? = bearerToken?.trim()?.takeIf { it.isNotBlank() }
 
@@ -143,7 +148,9 @@ class TogetherClient(
                             )
                         send(TogetherJson.json.encodeToString(TogetherMessage.serializer(), hello))
                         _state.value = TogetherClientState.Connected(joinInfo)
+                        val sender = launch { sendQueued(this@webSocket) }
                         runLoop(this, joinInfo.sessionId)
+                        sender.cancel()
                     }
                     return@launch
                 } catch (t: Throwable) {
@@ -190,7 +197,9 @@ class TogetherClient(
                             )
                         send(TogetherJson.json.encodeToString(TogetherMessage.serializer(), hello))
                         _state.value = TogetherClientState.ConnectedRemote(wsUrl = candidate, sessionId = sessionId)
+                        val sender = launch { sendQueued(this@webSocket) }
                         runLoop(this, sessionId)
+                        sender.cancel()
                     }
                     return@launch
                 } catch (t: Throwable) {
@@ -207,7 +216,7 @@ class TogetherClient(
         val trimmed = url.trim()
         return when {
             trimmed.startsWith("ws://") -> "wss://${trimmed.removePrefix("ws://")}"
-            trimmed.startsWith("wss://") -> "ws://${trimmed.removePrefix("wss://")}"
+            // Never fall back from wss to ws: that would send the session key and token unencrypted.
             else -> null
         }
     }
@@ -237,45 +246,36 @@ class TogetherClient(
         runCatching { session?.close(CloseReason(CloseReason.Codes.NORMAL, "Disconnect")) }
         session = null
         selfParticipantId = null
+        while (outgoing.tryReceive().isSuccess) Unit // drop requests meant for the old session
         _state.value = TogetherClientState.Idle
     }
 
     fun requestControl(sessionId: String, action: ControlAction) {
         val pid = selfParticipantId ?: return
-        scope.launch {
-            session?.send(
-                TogetherJson.json.encodeToString(
-                    TogetherMessage.serializer(),
-                    ControlRequest(sessionId = sessionId, participantId = pid, action = action),
-                ),
-            )
-        }
+        outgoing.trySend(ControlRequest(sessionId = sessionId, participantId = pid, action = action))
     }
 
     fun requestAddTrack(sessionId: String, track: TogetherTrack, mode: AddTrackMode) {
         val pid = selfParticipantId ?: return
-        scope.launch {
-            session?.send(
-                TogetherJson.json.encodeToString(
-                    TogetherMessage.serializer(),
-                    AddTrackRequest(sessionId = sessionId, participantId = pid, track = track, mode = mode),
-                ),
-            )
-        }
+        outgoing.trySend(AddTrackRequest(sessionId = sessionId, participantId = pid, track = track, mode = mode))
     }
 
     fun sendHeartbeat(sessionId: String, pingId: Long, clientElapsedRealtimeMs: Long) {
-        scope.launch {
-            session?.send(
-                TogetherJson.json.encodeToString(
-                    TogetherMessage.serializer(),
-                    HeartbeatPing(
-                        sessionId = sessionId,
-                        pingId = pingId,
-                        clientElapsedRealtimeMs = clientElapsedRealtimeMs,
-                    ),
-                ),
-            )
+        outgoing.trySend(
+            HeartbeatPing(sessionId = sessionId, pingId = pingId, clientElapsedRealtimeMs = clientElapsedRealtimeMs),
+        )
+    }
+
+    private suspend fun sendQueued(session: WebSocketSession) {
+        try {
+            for (message in outgoing) {
+                session.send(TogetherJson.json.encodeToString(TogetherMessage.serializer(), message))
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // Socket died; the receive loop reports the disconnect.
+            Timber.tag("Together").w(e, "send failed")
         }
     }
 
@@ -295,7 +295,8 @@ class TogetherClient(
                         val message =
                             runCatching { TogetherJson.json.decodeFromString(TogetherMessage.serializer(), text) }
                                 .getOrElse {
-                                    _events.tryEmit(TogetherClientEvent.Error("Failed to decode message", it))
+                                    // Skip messages we can't read (e.g. from a newer server) instead of ending the session.
+                                    Timber.tag("Together").w(it, "dropping undecodable message")
                                     continue
                                 }
 
