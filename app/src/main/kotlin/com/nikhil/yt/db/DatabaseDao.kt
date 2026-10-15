@@ -276,6 +276,9 @@ interface DatabaseDao {
     )
     fun likedSongsByCreateDateAscNoVideo(): Flow<List<Song>>
 
+    @Query("SELECT videoId FROM set_video_id WHERE setVideoId IS NOT NULL")
+    fun videoSongIds(): Flow<List<String>>
+
     @Transaction
     @Query(
         """
@@ -1648,6 +1651,13 @@ interface DatabaseDao {
     }
 
     // ─── For You Suggestion Engine ───────────────────────────────────────
+
+    // Lightweight id-only reads: the full events()/likedSongs() lists load every row with relations.
+    @Query("SELECT songId FROM event ORDER BY rowId DESC LIMIT :limit")
+    suspend fun recentEventSongIds(limit: Int): List<String>
+
+    @Query("SELECT id FROM song WHERE liked")
+    suspend fun likedSongIds(): List<String>
 
     @Query("SELECT * FROM song_skip")
     fun getAllSkips(): Flow<List<com.nikhil.yt.db.entities.SongSkipEntity>>

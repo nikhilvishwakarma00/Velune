@@ -237,7 +237,8 @@ fun LocalPlaylistScreen(
         } else {
             songs.filter { song ->
                 song.song.song.title.contains(query.text, ignoreCase = true) ||
-                        song.song.artists.fastAny { it.name.contains(query.text, ignoreCase = true) }
+                        song.song.artists.fastAny { it.name.contains(query.text, ignoreCase = true) } ||
+                        song.song.song.albumName?.contains(query.text, ignoreCase = true) == true
             }
         }
     }

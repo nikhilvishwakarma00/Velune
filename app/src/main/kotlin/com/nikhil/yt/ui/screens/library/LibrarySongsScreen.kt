@@ -59,6 +59,7 @@ import com.nikhil.yt.constants.CONTENT_TYPE_SONG
 import com.nikhil.yt.constants.HideExplicitKey
 import com.nikhil.yt.constants.SongFilter
 import com.nikhil.yt.constants.SongFilterKey
+import com.nikhil.yt.constants.AutoPlaylistSongSortType
 import com.nikhil.yt.constants.SongSortDescendingKey
 import com.nikhil.yt.constants.SongSortType
 import com.nikhil.yt.constants.SongSortTypeKey
@@ -71,6 +72,8 @@ import com.nikhil.yt.ui.component.HideOnScrollFAB
 import com.nikhil.yt.ui.component.LocalMenuState
 import com.nikhil.yt.ui.component.SongListItem
 import com.nikhil.yt.ui.component.SortHeader
+import com.nikhil.yt.utils.autoPlaylistKeys
+import com.nikhil.yt.utils.labelRes
 import com.nikhil.yt.ui.menu.SelectionSongMenu
 import com.nikhil.yt.ui.menu.SongMenu
 import com.nikhil.yt.ui.utils.ItemWrapper
@@ -97,6 +100,13 @@ fun LibrarySongsScreen(
         SongSortType.CREATE_DATE
     )
     val (sortDescending, onSortDescendingChange) = rememberPreference(SongSortDescendingKey, true)
+    // Liked/Downloaded filters use the same sort as their playlist screens.
+    val likedKeys = remember { autoPlaylistKeys("liked") }
+    val downloadedKeys = remember { autoPlaylistKeys("downloaded") }
+    val likedSort = rememberEnumPreference(likedKeys.sortType, AutoPlaylistSongSortType.CREATE_DATE)
+    val likedDescending = rememberPreference(likedKeys.descending, true)
+    val downloadedSort = rememberEnumPreference(downloadedKeys.sortType, AutoPlaylistSongSortType.CREATE_DATE)
+    val downloadedDescending = rememberPreference(downloadedKeys.descending, true)
 
     val (ytmSync) = rememberPreference(YtmSyncKey, true)
     val hideExplicit by rememberPreference(key = HideExplicitKey, defaultValue = false)
@@ -241,20 +251,33 @@ fun LibrarySongsScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.padding(horizontal = 16.dp),
                         ) {
-                            SortHeader(
-                                sortType = sortType,
-                                sortDescending = sortDescending,
-                                onSortTypeChange = onSortTypeChange,
-                                onSortDescendingChange = onSortDescendingChange,
-                                sortTypeText = { sortType ->
-                                    when (sortType) {
-                                        SongSortType.CREATE_DATE -> R.string.sort_by_create_date
-                                        SongSortType.NAME -> R.string.sort_by_name
-                                        SongSortType.ARTIST -> R.string.sort_by_artist
-                                        SongSortType.PLAY_TIME -> R.string.sort_by_play_time
-                                    }
-                                },
-                            )
+                            if (filter == SongFilter.LIBRARY) {
+                                SortHeader(
+                                    sortType = sortType,
+                                    sortDescending = sortDescending,
+                                    onSortTypeChange = onSortTypeChange,
+                                    onSortDescendingChange = onSortDescendingChange,
+                                    sortTypeText = { sortType ->
+                                        when (sortType) {
+                                            SongSortType.CREATE_DATE -> R.string.sort_by_create_date
+                                            SongSortType.NAME -> R.string.sort_by_name
+                                            SongSortType.ARTIST -> R.string.sort_by_artist
+                                            SongSortType.PLAY_TIME -> R.string.sort_by_play_time
+                                        }
+                                    },
+                                )
+                            } else {
+                                val (autoSort, autoDescending) =
+                                    if (filter == SongFilter.LIKED) likedSort to likedDescending
+                                    else downloadedSort to downloadedDescending
+                                SortHeader(
+                                    sortType = autoSort.value,
+                                    sortDescending = autoDescending.value,
+                                    onSortTypeChange = { autoSort.value = it },
+                                    onSortDescendingChange = { autoDescending.value = it },
+                                    sortTypeText = { it.labelRes() },
+                                )
+                            }
 
                             Spacer(Modifier.weight(1f))
 

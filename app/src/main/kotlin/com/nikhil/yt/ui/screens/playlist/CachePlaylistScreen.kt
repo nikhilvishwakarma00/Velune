@@ -184,7 +184,8 @@ fun CachePlaylistScreen(
         else wrappedSongs.filter { wrapper ->
             val song = wrapper.item
             song.title.contains(query.text, true) ||
-                    song.artists.any { it.name.contains(query.text, true) }
+                    song.artists.any { it.name.contains(query.text, true) } ||
+                    song.song.albumName?.contains(query.text, true) == true
         }
     }
 

@@ -33,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nikhil.yt.R
+import com.nikhil.yt.constants.AutoPlaylistSongSortType
 import com.nikhil.yt.constants.PlaylistSortType
 import com.nikhil.yt.constants.PlaylistSongSortType
 
@@ -108,6 +109,7 @@ inline fun <reified T : Enum<T>> SortHeader(
                 when (sortType) {
                     is PlaylistSongSortType -> sortType != PlaylistSongSortType.CUSTOM
                     is PlaylistSortType -> sortType != PlaylistSortType.CUSTOM
+                    is AutoPlaylistSongSortType -> sortType != AutoPlaylistSongSortType.CUSTOM
                     else -> true
                 }
 

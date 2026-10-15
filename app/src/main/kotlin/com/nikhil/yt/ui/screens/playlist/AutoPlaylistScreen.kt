@@ -12,6 +12,7 @@ import com.nikhil.yt.ui.component.VeluneLoader
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,6 +32,7 @@ import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -102,37 +104,46 @@ import coil3.request.allowHardware
 import coil3.toBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import com.nikhil.yt.LocalDatabase
 import com.nikhil.yt.LocalDownloadUtil
 import com.nikhil.yt.LocalPlayerAwareWindowInsets
 import com.nikhil.yt.LocalPlayerConnection
 import com.nikhil.yt.R
 import com.nikhil.yt.constants.DisableBlurKey
 import com.nikhil.yt.constants.HideExplicitKey
-import com.nikhil.yt.constants.AutoPlaylistSongSortDescendingKey
 import com.nikhil.yt.constants.AutoPlaylistSongSortType
-import com.nikhil.yt.constants.AutoPlaylistSongSortTypeKey
 import com.nikhil.yt.constants.YtmSyncKey
 import com.nikhil.yt.db.entities.Song
+import com.nikhil.yt.extensions.move
+import com.nikhil.yt.extensions.playTimeMix
 import com.nikhil.yt.extensions.toMediaItem
 import com.nikhil.yt.extensions.togglePlayPause
 import com.nikhil.yt.playback.ExoDownloadService
+import com.nikhil.yt.models.toMediaMetadata
 import com.nikhil.yt.playback.queues.ListQueue
+import com.nikhil.yt.playback.queues.YouTubeQueue
 import com.nikhil.yt.ui.component.DefaultDialog
 import com.nikhil.yt.ui.component.DraggableScrollbar
 import com.nikhil.yt.ui.component.EmptyPlaceholder
 import com.nikhil.yt.ui.component.IconButton
 import com.nikhil.yt.ui.component.LocalMenuState
+import com.nikhil.yt.ui.component.NavigationTitle
 import com.nikhil.yt.ui.component.SongListItem
 import com.nikhil.yt.ui.component.SortHeader
+import com.nikhil.yt.ui.component.YouTubeListItem
 import com.nikhil.yt.ui.menu.SelectionSongMenu
 import com.nikhil.yt.ui.menu.SongMenu
 import com.nikhil.yt.ui.theme.PlayerColorExtractor
 import com.nikhil.yt.ui.utils.ItemWrapper
 import com.nikhil.yt.ui.utils.backToMain
+import com.nikhil.yt.utils.autoPlaylistKeys
+import com.nikhil.yt.utils.labelRes
 import com.nikhil.yt.utils.makeTimeString
 import com.nikhil.yt.utils.rememberEnumPreference
 import com.nikhil.yt.utils.rememberPreference
 import com.nikhil.yt.viewmodels.AutoPlaylistViewModel
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -152,6 +163,8 @@ fun AutoPlaylistScreen(
         if (viewModel.playlist == "liked") stringResource(R.string.liked) else stringResource(R.string.offline)
 
     val songs by viewModel.likedSongs.collectAsState(null)
+    val suggestions by viewModel.suggestions.collectAsState()
+    val database = LocalDatabase.current
     val mutableSongs = remember { mutableStateListOf<Song>() }
 
     var isSearching by remember { mutableStateOf(false) }
@@ -196,11 +209,17 @@ fun AutoPlaylistScreen(
         }
     }
 
+    val sortKeys = remember { autoPlaylistKeys(viewModel.playlist) }
     val (sortType, onSortTypeChange) = rememberEnumPreference(
-        AutoPlaylistSongSortTypeKey,
+        sortKeys.sortType,
         AutoPlaylistSongSortType.CREATE_DATE
     )
-    val (sortDescending, onSortDescendingChange) = rememberPreference(AutoPlaylistSongSortDescendingKey, true)
+    val (sortDescending, onSortDescendingChange) = rememberPreference(sortKeys.descending, true)
+    val playTimeMix = sortType == AutoPlaylistSongSortType.PLAY_TIME
+
+    // Play time sort and Shuffle play most-played vs least-played ~60/40.
+    fun queueSongs(shuffle: Boolean, first: Song? = null): List<Song> =
+        if (shuffle || playTimeMix) songs!!.playTimeMix({ it.song.totalPlayTime }, first) else songs!!
 
     val downloadUtil = LocalDownloadUtil.current
     var downloadState by remember { mutableIntStateOf(Download.STATE_STOPPED) }
@@ -279,7 +298,8 @@ fun AutoPlaylistScreen(
         else wrappedSongs.filter { wrapper ->
             val song = wrapper.item
             song.song.title.contains(query.text, true) ||
-                    song.artists.any { it.name.contains(query.text, true) }
+                    song.artists.any { it.name.contains(query.text, true) } ||
+                    song.song.albumName?.contains(query.text, true) == true
         }
     }
 
@@ -356,6 +376,25 @@ fun AutoPlaylistScreen(
         derivedStateOf {
             val currentSongs = songs
             if (currentSongs != null && currentSongs.isNotEmpty() && !isSearching) 2 else 0
+        }
+    }
+
+    var dragged by remember { mutableStateOf(false) }
+    val reorderableState = rememberReorderableLazyListState(
+        lazyListState = lazyListState,
+        scrollThresholdPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
+    ) { from, to ->
+        if (from.index >= headerItems && to.index >= headerItems) {
+            wrappedSongs.move(from.index - headerItems, to.index - headerItems)
+            dragged = true
+        }
+    }
+
+    // Dragging in any sort mode freezes the order on screen as Custom.
+    LaunchedEffect(reorderableState.isAnyItemDragging) {
+        if (!reorderableState.isAnyItemDragging && dragged) {
+            dragged = false
+            viewModel.saveCustomOrder(wrappedSongs.map { it.item.id })
         }
     }
 
@@ -652,7 +691,7 @@ fun AutoPlaylistScreen(
                                             playerConnection.playQueue(
                                                 ListQueue(
                                                     title = playlist,
-                                                    items = songs!!.map { it.toMediaItem() },
+                                                    items = queueSongs(shuffle = false).map { it.toMediaItem() },
                                                 ),
                                             )
                                         },
@@ -674,7 +713,7 @@ fun AutoPlaylistScreen(
                                             playerConnection.playQueue(
                                                 ListQueue(
                                                     title = playlist,
-                                                    items = songs!!.shuffled().map { it.toMediaItem() },
+                                                    items = queueSongs(shuffle = true).map { it.toMediaItem() },
                                                 ),
                                             )
                                         },
@@ -731,14 +770,7 @@ fun AutoPlaylistScreen(
                                 sortDescending = sortDescending,
                                 onSortTypeChange = onSortTypeChange,
                                 onSortDescendingChange = onSortDescendingChange,
-                                sortTypeText = { sortType ->
-                                    when (sortType) {
-                                        AutoPlaylistSongSortType.CREATE_DATE -> R.string.sort_by_create_date
-                                        AutoPlaylistSongSortType.NAME -> R.string.sort_by_name
-                                        AutoPlaylistSongSortType.ARTIST -> R.string.sort_by_artist
-                                        AutoPlaylistSongSortType.PLAY_TIME -> R.string.sort_by_play_time
-                                    }
-                                },
+                                sortTypeText = { it.labelRes() },
                                 modifier = Modifier.weight(1f),
                             )
                         }
@@ -749,61 +781,132 @@ fun AutoPlaylistScreen(
                         items = filteredSongs,
                         key = { _, song -> song.item.id },
                     ) { index, songWrapper ->
-                        SongListItem(
-                            song = songWrapper.item,
-                            isActive = songWrapper.item.song.id == mediaMetadata?.id,
-                            isPlaying = isPlaying,
-                            showInLibraryIcon = true,
-                            trailingContent = {
-                                androidx.compose.material3.IconButton(
-                                    onClick = {
-                                        menuState.show {
-                                            SongMenu(
-                                                originalSong = songWrapper.item,
-                                                navController = navController,
-                                                onDismiss = menuState::dismiss,
-                                            )
-                                        }
-                                    },
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.more_vert),
-                                        contentDescription = null,
-                                    )
-                                }
-                            },
-                            isSelected = songWrapper.isSelected && selection,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .combinedClickable(
-                                    onClick = {
-                                        if (!selection) {
-                                            if (songWrapper.item.song.id == mediaMetadata?.id) {
-                                                playerConnection.player.togglePlayPause()
-                                            } else {
-                                                playerConnection.playQueue(
-                                                    ListQueue(
-                                                        title = playlist,
-                                                        items = songs!!.map { it.toMediaItem() },
-                                                        startIndex = songs!!.indexOfFirst { it.id == songWrapper.item.id }
-                                                    ),
+                        ReorderableItem(
+                            state = reorderableState,
+                            key = songWrapper.item.id,
+                        ) {
+                            SongListItem(
+                                song = songWrapper.item,
+                                isActive = songWrapper.item.song.id == mediaMetadata?.id,
+                                isPlaying = isPlaying,
+                                showInLibraryIcon = true,
+                                trailingContent = {
+                                    androidx.compose.material3.IconButton(
+                                        onClick = {
+                                            menuState.show {
+                                                SongMenu(
+                                                    originalSong = songWrapper.item,
+                                                    navController = navController,
+                                                    onDismiss = menuState::dismiss,
                                                 )
                                             }
-                                        } else {
-                                            songWrapper.isSelected = !songWrapper.isSelected
+                                        },
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.more_vert),
+                                            contentDescription = null,
+                                        )
+                                    }
+
+                                    if (!selection && !isSearching) {
+                                        IconButton(
+                                            onClick = { },
+                                            onLongClick = {},
+                                            modifier = Modifier
+                                                .draggableHandle()
+                                                .graphicsLayer { alpha = 0.99f },
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.drag_handle),
+                                                contentDescription = null,
+                                            )
                                         }
-                                    },
-                                    onLongClick = {
-                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        if (!selection) {
-                                            selection = true
-                                            wrappedSongs.forEach { it.isSelected = false }
-                                            songWrapper.isSelected = true
-                                        }
-                                    },
-                                )
-                                .animateItem()
-                        )
+                                    }
+                                },
+                                isSelected = songWrapper.isSelected && selection,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .combinedClickable(
+                                        onClick = {
+                                            if (!selection) {
+                                                if (songWrapper.item.song.id == mediaMetadata?.id) {
+                                                    playerConnection.player.togglePlayPause()
+                                                } else if (playTimeMix) {
+                                                    playerConnection.playQueue(
+                                                        ListQueue(
+                                                            title = playlist,
+                                                            items = queueSongs(shuffle = false, first = songWrapper.item)
+                                                                .map { it.toMediaItem() },
+                                                        ),
+                                                    )
+                                                } else {
+                                                    playerConnection.playQueue(
+                                                        ListQueue(
+                                                            title = playlist,
+                                                            items = songs!!.map { it.toMediaItem() },
+                                                            startIndex = songs!!.indexOfFirst { it.id == songWrapper.item.id }
+                                                        ),
+                                                    )
+                                                }
+                                            } else {
+                                                songWrapper.isSelected = !songWrapper.isSelected
+                                            }
+                                        },
+                                        onLongClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            if (!selection) {
+                                                selection = true
+                                                wrappedSongs.forEach { it.isSelected = false }
+                                                songWrapper.isSelected = true
+                                            }
+                                        },
+                                    )
+                            )
+                        }
+                    }
+
+                    if (!isSearching && !selection && suggestions.isNotEmpty()) {
+                        item(key = "suggestionsTitle") {
+                            NavigationTitle(title = stringResource(R.string.you_might_like))
+                        }
+                        items(
+                            items = suggestions,
+                            key = { "suggestion_${it.id}" },
+                        ) { song ->
+                            YouTubeListItem(
+                                item = song,
+                                isActive = song.id == mediaMetadata?.id,
+                                isPlaying = isPlaying,
+                                trailingContent = {
+                                    androidx.compose.material3.IconButton(
+                                        onClick = {
+                                            database.transaction { insert(song.toMediaMetadata()) }
+                                            DownloadService.sendAddDownload(
+                                                context,
+                                                ExoDownloadService::class.java,
+                                                DownloadRequest
+                                                    .Builder(song.id, song.id.toUri())
+                                                    .setCustomCacheKey(song.id)
+                                                    .setData(song.title.toByteArray())
+                                                    .build(),
+                                                false,
+                                            )
+                                        },
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.download),
+                                            contentDescription = stringResource(R.string.download),
+                                        )
+                                    }
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        playerConnection.playQueue(YouTubeQueue.radio(song.toMediaMetadata()))
+                                    }
+                                    .animateItem(),
+                            )
+                        }
                     }
                 }
             }

@@ -9,108 +9,88 @@
 package com.nikhil.yt.viewmodels
 
 import android.content.Context
+import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.exoplayer.offline.Download
-import com.nikhil.yt.constants.AutoPlaylistSongSortDescendingKey
 import com.nikhil.yt.constants.AutoPlaylistSongSortType
-import com.nikhil.yt.constants.AutoPlaylistSongSortTypeKey
 import com.nikhil.yt.constants.HideExplicitKey
 import com.nikhil.yt.constants.HideVideoKey
-import com.nikhil.yt.constants.SongSortType
 import com.nikhil.yt.db.MusicDatabase
-import com.nikhil.yt.extensions.filterExplicit
-import com.nikhil.yt.extensions.reversed
-import com.nikhil.yt.extensions.toEnum
+import com.nikhil.yt.innertube.models.SongItem
 import com.nikhil.yt.playback.DownloadUtil
+import com.nikhil.yt.utils.ForYouSuggestionEngine
 import com.nikhil.yt.utils.SyncUtils
+import com.nikhil.yt.utils.autoPlaylistKeys
+import com.nikhil.yt.utils.autoPlaylistSongs
 import com.nikhil.yt.utils.dataStore
 import com.nikhil.yt.utils.get
 import com.nikhil.yt.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class AutoPlaylistViewModel
 @Inject
 constructor(
-    @ApplicationContext context: Context,
+    @ApplicationContext private val context: Context,
     database: MusicDatabase,
-    downloadUtil: DownloadUtil,
+    private val downloadUtil: DownloadUtil,
     savedStateHandle: SavedStateHandle,
     private val syncUtils: SyncUtils,
+    private val forYouEngine: ForYouSuggestionEngine,
 ) : ViewModel() {
     val playlist = savedStateHandle.get<String>("playlist")!!
 
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing = _isRefreshing.asStateFlow()
 
-    private fun AutoPlaylistSongSortType.toSongSortType(): SongSortType =
-        when (this) {
-            AutoPlaylistSongSortType.CREATE_DATE -> SongSortType.CREATE_DATE
-            AutoPlaylistSongSortType.NAME -> SongSortType.NAME
-            AutoPlaylistSongSortType.ARTIST -> SongSortType.ARTIST
-            AutoPlaylistSongSortType.PLAY_TIME -> SongSortType.PLAY_TIME
-        }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
     val likedSongs =
-        context.dataStore.data
-            .map {
-                Triple(
-                    it[AutoPlaylistSongSortTypeKey].toEnum(AutoPlaylistSongSortType.CREATE_DATE) to (it[AutoPlaylistSongSortDescendingKey]
-                        ?: true),
-                    it[HideExplicitKey] ?: false,
-                    it[HideVideoKey] ?: false,
-                )
-            }
-            .distinctUntilChanged()
-            .flatMapLatest { (sortDesc, hideExplicit, hideVideo) ->
-                val (sortType, descending) = sortDesc
-                val songSortType = sortType.toSongSortType()
-                when (playlist) {
-                    "liked" -> database.likedSongs(songSortType, descending, hideVideo).map { it.filterExplicit(hideExplicit) }
-                    "downloaded" -> downloadUtil.downloads.flatMapLatest { downloads ->
-                        database.allSongs()
-                            .flowOn(Dispatchers.IO)
-                            .map { songs ->
-                                songs.filter {
-                                    downloads[it.id]?.state == Download.STATE_COMPLETED
-                                }
-                            }
-                            .map { songs ->
-                                when (songSortType) {
-                                    SongSortType.CREATE_DATE -> songs.sortedBy {
-                                        downloads[it.id]?.updateTimeMs ?: 0L
-                                    }
+        autoPlaylistSongs(context, database, downloadUtil, playlist)
+            .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-                                    SongSortType.NAME -> songs.sortedBy { it.song.title }
-                                    SongSortType.ARTIST -> songs.sortedBy { song ->
-                                        song.artists.joinToString(separator = "") { artist -> artist.name }
-                                    }
+    // "Suggested for you" under the Downloaded playlist: For You picks not downloaded yet.
+    private val _suggestions = MutableStateFlow<List<SongItem>>(emptyList())
+    val suggestions = _suggestions.asStateFlow()
 
-                                    SongSortType.PLAY_TIME -> songs.sortedBy { it.song.totalPlayTime }
-                                }.reversed(descending).filterExplicit(hideExplicit)
-                            }
-                    }
-
-                    else -> MutableStateFlow(emptyList())
+    init {
+        if (playlist == "downloaded") {
+            viewModelScope.launch(Dispatchers.IO) {
+                try {
+                    val suggested = forYouEngine.getSuggestions(
+                        hideExplicit = context.dataStore.get(HideExplicitKey, false),
+                        hideVideo = context.dataStore.get(HideVideoKey, false),
+                        maxAgeMs = SUGGESTIONS_MAX_AGE_MS,
+                    )
+                    val downloads = downloadUtil.downloads.value
+                    _suggestions.value = suggested
+                        .filter { downloads[it.id]?.state != Download.STATE_COMPLETED }
+                        .take(MAX_SUGGESTIONS)
+                } catch (e: Exception) {
+                    reportException(e)
                 }
-            }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+            }
+        }
+    }
+
+    /** Freezes the playlist in [songIds] order and switches its sort to Custom. */
+    fun saveCustomOrder(songIds: List<String>) {
+        val keys = autoPlaylistKeys(playlist)
+        viewModelScope.launch {
+            context.dataStore.edit {
+                it[keys.order] = songIds.joinToString(",")
+                it[keys.sortType] = AutoPlaylistSongSortType.CUSTOM.name
+            }
+        }
+    }
 
     fun refresh() {
         if (_isRefreshing.value) return
@@ -131,5 +111,10 @@ constructor(
 
     fun syncLikedSongs() {
         refresh()
+    }
+
+    private companion object {
+        const val MAX_SUGGESTIONS = 20
+        const val SUGGESTIONS_MAX_AGE_MS = 10 * 60 * 1000L
     }
 }

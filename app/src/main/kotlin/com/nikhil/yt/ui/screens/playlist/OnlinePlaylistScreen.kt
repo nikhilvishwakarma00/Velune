@@ -188,7 +188,8 @@ fun OnlinePlaylistScreen(
                     .mapIndexed { index, song -> index to song }
                     .filter { (_, song) ->
                         song.title.contains(query.text, ignoreCase = true) ||
-                            song.artists.fastAny { it.name.contains(query.text, ignoreCase = true) }
+                            song.artists.fastAny { it.name.contains(query.text, ignoreCase = true) } ||
+                            song.album?.name?.contains(query.text, ignoreCase = true) == true
                     }
             }
         }

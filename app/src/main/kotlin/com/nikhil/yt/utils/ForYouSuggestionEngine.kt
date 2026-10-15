@@ -95,21 +95,41 @@ class ForYouSuggestionEngine @Inject constructor(
     /**
      * Build the For You suggestion list from local + YouTube related songs
      */
+    @Volatile
+    private var cached: Triple<Long, Pair<Boolean, Boolean>, List<SongItem>>? = null
+
+    /**
+     * @param maxAgeMs reuse the last result if it's younger than this (it costs ~10 network calls).
+     */
     suspend fun getSuggestions(
         hideExplicit: Boolean = false,
-        hideVideo: Boolean = false
+        hideVideo: Boolean = false,
+        maxAgeMs: Long = 0L,
+    ): List<SongItem> {
+        val filters = hideExplicit to hideVideo
+        cached?.let { (at, cachedFilters, songs) ->
+            if (cachedFilters == filters && System.currentTimeMillis() - at < maxAgeMs) return songs
+        }
+        return buildSuggestions(hideExplicit, hideVideo).also {
+            cached = Triple(System.currentTimeMillis(), filters, it)
+        }
+    }
+
+    private suspend fun buildSuggestions(
+        hideExplicit: Boolean,
+        hideVideo: Boolean,
     ): List<SongItem> {
         val fromTimeStamp = System.currentTimeMillis() - 86400000L * 30 // last 30 days
         val timeOfDay = getTimeOfDay()
 
         // Fetch local data
         val allSongs = database.mostPlayedSongs(fromTimeStamp, limit = 100).first()
-        val likedSongs = database.likedSongsByPlayTimeAsc().first()
+        val likedIdList = database.likedSongIds()
         val skips = database.getAllSkips().first()
-        val recentEvents = database.events().first().take(20)
 
-        val likedIds = likedSongs.map { it.id }.toSet()
-        val recentIds = recentEvents.mapNotNull { it.song?.id }.toSet()
+
+        val likedIds = likedIdList.toSet()
+        val recentIds = database.recentEventSongIds(limit = 20).toSet()
         val skipMap = skips.associateBy { it.songId }
 
         // Score and sort all songs
@@ -146,12 +166,12 @@ class ForYouSuggestionEngine @Inject constructor(
         }
 
         // Fill remaining from liked songs radio if needed
-        if (suggestions.size < MAX_SUGGESTIONS && likedSongs.isNotEmpty()) {
-            val likedSeed = likedSongs.shuffled().firstOrNull()
+        if (suggestions.size < MAX_SUGGESTIONS && likedIdList.isNotEmpty()) {
+            val likedSeed = likedIdList.randomOrNull()
             if (likedSeed != null) {
                 try {
                     val endpoint = YouTube.next(
-                        WatchEndpoint(videoId = likedSeed.id)
+                        WatchEndpoint(videoId = likedSeed)
                     ).getOrNull()?.relatedEndpoint
 
                     if (endpoint != null) {
