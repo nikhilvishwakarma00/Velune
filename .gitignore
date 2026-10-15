@@ -39,3 +39,5 @@ captures/
 *.keystore
 *.properties
 !gradle.properties
+!gradle/wrapper/gradle-wrapper.properties
+!app/src/main/res/resources.properties
