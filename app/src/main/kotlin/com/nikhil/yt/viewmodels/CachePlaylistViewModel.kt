@@ -82,4 +82,14 @@ class CachePlaylistViewModel @Inject constructor(
     fun removeSongFromCache(songId: String) {
         playerCache.removeResource(songId)
     }
+
+    fun removeSongsFromCache(songIds: Collection<String>) {
+        if (songIds.isEmpty()) return
+        viewModelScope.launch(Dispatchers.IO) {
+            songIds.forEach { playerCache.removeResource(it) }
+            // Update the list right away instead of waiting for the next poll.
+            val removed = songIds.toSet()
+            _cachedSongs.update { songs -> songs.filterNot { it.id in removed } }
+        }
+    }
 }

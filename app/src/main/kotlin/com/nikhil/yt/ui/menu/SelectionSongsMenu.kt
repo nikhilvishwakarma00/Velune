@@ -77,6 +77,8 @@ fun SelectionSongMenu(
     onDismiss: () -> Unit,
     clearAction: () -> Unit,
     songPosition: List<PlaylistSongMap>? = emptyList(),
+    // When non-null (e.g. in Library -> Cached), shows a "Remove from cache" action for the selection.
+    onRemoveFromCache: ((List<Song>) -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val database = LocalDatabase.current
@@ -439,6 +441,30 @@ fun SelectionSongMenu(
                         }
                     )
                 }
+            }
+        }
+        if (onRemoveFromCache != null) {
+            item {
+                ListItem(
+                    headlineContent = {
+                        Text(
+                            text = stringResource(R.string.remove_from_cache),
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    },
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.delete),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error,
+                        )
+                    },
+                    modifier = Modifier.clickable {
+                        onDismiss()
+                        onRemoveFromCache(songSelection)
+                        clearAction()
+                    }
+                )
             }
         }
         item {

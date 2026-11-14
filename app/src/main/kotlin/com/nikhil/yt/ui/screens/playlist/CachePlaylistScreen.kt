@@ -743,7 +743,10 @@ fun CachePlaylistScreen(
                             SelectionSongMenu(
                                 songSelection = wrappedSongs.filter { it.isSelected }.map { it.item },
                                 onDismiss = menuState::dismiss,
-                                clearAction = { selection = false }
+                                clearAction = { selection = false },
+                                onRemoveFromCache = { songs ->
+                                    viewModel.removeSongsFromCache(songs.map { it.id })
+                                },
                             )
                         }
                     }) {
